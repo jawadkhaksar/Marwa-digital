@@ -164,9 +164,11 @@ process.on("unhandledRejection", (reason) => {
   console.error("[api] Unhandled rejection:", reason);
 });
 
-// Vercel invokes `app` directly as a request handler per-request (see
-// api/index.ts) — it never calls .listen() and a serverless instance
-// doesn't stay alive between requests, so both the TCP listener and the
+// Vercel invokes the default export (this whole module, bundled by
+// scripts/build-vercel.mjs into dist-vercel/server.js — see vercel.json)
+// directly as a request handler per-request — it never calls .listen() and
+// a serverless instance doesn't stay alive between requests, so both the
+// TCP listener and the
 // setInterval pollers below are always-on-host-only (local dev, Railway,
 // a VPS). On Vercel, routes/cron.ts (driven by Vercel Cron Jobs or an
 // external pinger) does the equivalent job instead — see its top comment.

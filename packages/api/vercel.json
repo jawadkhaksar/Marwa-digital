@@ -1,4 +1,5 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
+  "builds": [{ "src": "dist-vercel/server.js", "use": "@vercel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "dist-vercel/server.js" }],
   "crons": [{ "path": "/api/cron/run-scheduled-tasks", "schedule": "0 0 * * *" }]
 }
