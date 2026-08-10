@@ -1,0 +1,1157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+// ── Users ────────────────────────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         UserRole  @default(EDITOR)
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Blog author card (bio + avatar shown on single post pages) — optional,
+  // only relevant for users who actually author posts.
+  avatarUrl String?
+  bio       String?
+  posts     Post[]
+
+  // ── Security: 2FA & session invalidation ────────────────────────────────
+  // twoFactorSecret is the base32 TOTP secret from the (unverified/pending)
+  // setup step onward — present but twoFactorEnabled still false between
+  // POST /2fa/setup and a confirming POST /2fa/verify. Backup codes are
+  // stored bcrypt-hashed (never plaintext) as a JSON string array; each is
+  // removed from the array the moment it's redeemed, so a code only ever
+  // works once.
+  twoFactorSecret       String?
+  twoFactorEnabled      Boolean @default(false)
+  twoFactorBackupCodes  Json?
+
+  // Bumped on password reset (and can be reused for a future "log out
+  // everywhere" action) to invalidate every JWT issued before that moment —
+  // each token embeds the sessionVersion it was signed with, and requireAdmin
+  // rejects a token whose embedded version no longer matches the user's
+  // current one. See packages/api/src/lib/auth.ts.
+  sessionVersion Int @default(0)
+
+  revisions   ContentRevision[]
+  resetTokens PasswordResetToken[]
+
+  memberships OrgMembership[]
+}
+
+// ── Multi-Tenant Agency Workspaces ──────────────────────────────────────
+// An Organization is an agency's client workspace. Every install still works
+// with zero Organizations (the pre-existing single-tenant behavior — see
+// each scoped model's `organizationId String?` below and the tenant
+// middleware in packages/api/src/middleware/tenant.ts): resources with a
+// null organizationId are the "unassigned" default workspace every existing
+// row already belongs to, and stay globally visible until an admin actually
+// starts using workspaces. OrgMembership.role is a plain string (matching
+// this file's existing convention for small admin-editable closed sets, e.g.
+// PipelineStage.stageType) rather than an enum, since "CLIENT" is meant to be
+// extended by agencies without a schema change.
+model Organization {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  logoUrl      String?
+  primaryColor String?  @default("#3b82f6")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships OrgMembership[]
+  pages       Page[]
+  posts       Post[]
+  contacts    Contact[]
+  pipelines   Pipeline[]
+  workflows   AutomationWorkflow[]
+  backups     SystemBackup[]
+}
+
+model OrgMembership {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("MEMBER") // "OWNER" | "ADMIN" | "MEMBER" | "CLIENT"
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, userId])
+}
+
+// ── Transactional email ──────────────────────────────────────────────────
+
+// Admin-editable overrides for the transactional emails defined in
+// packages/api/src/lib/emailTemplates.ts. `key` matching one of
+// KNOWN_EMAIL_TEMPLATE_KEYS is what actually gets used at send time, in place
+// of that file's default copy, when `active` — anything else is a draft for a
+// future trigger a developer hasn't wired up yet. subject/bodyHtml use
+// {{variable}} placeholders.
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String
+  subject   String
+  bodyHtml  String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactInquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String?
+  status    String   @default("NEW") // NEW | CONTACTED | CLOSED
+  createdAt DateTime @default(now())
+
+  // ── Attribution (Analytics & Lead Attribution module) ──────────────────
+  // All nullable/optional: a direct API call, an old client build, or a
+  // visitor with tracking blocked simply omits these — the inquiry still
+  // saves, just without attribution. sessionId is a bare reference to
+  // VisitorSession.sessionId (not the row's own id) since that's the value
+  // both this table and PageView already key off, and what the client
+  // itself knows — see VisitorSession's own comment for why the relation
+  // isn't required.
+  sessionId      String?
+  session        VisitorSession? @relation(fields: [sessionId], references: [sessionId], onDelete: SetNull)
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  landingPage    String? // first page of the visit that led to this submission
+  conversionPage String? // the actual page this form was submitted from
+
+  // ── CRM linkage ── set by the contact auto-unification engine (see
+  // packages/api/src/routes/content.ts) when this inquiry's email matches an
+  // existing Contact, or after creating a new one for it.
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([contactId])
+}
+
+// Submissions from the visual builder's Form block (see @marwa/builder's
+// formBlock). Not tied to a Page foreign key — pages are edited/replaced
+// freely in the builder, and a submission should outlive the block that
+// created it (matching how ContactInquiry above isn't tied to the /contact
+// route either).
+model FormSubmission {
+  id         String   @id @default(cuid())
+  formId     String // the Form block's own admin-set "Form ID" prop
+  pageSlug   String
+  blockId    String // the specific node.id within that page's layout, in case a page has more than one Form block
+  data       Json // { [fieldId]: value } — field shape is whatever the form had at submission time, not schema-validated
+  // [{ action: "email"|"redirect"|"webhook", status: "ok"|"skipped"|"failed", detail?: string }] —
+  // "collectSubmissions" itself isn't logged here since its own success is this row existing at all.
+  actionsLog Json?
+  read       Boolean  @default(false)
+  userIp     String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  // ── Attribution (Analytics & Lead Attribution module) — see the matching
+  // fields on ContactInquiry above for why these are all optional and keyed
+  // on VisitorSession.sessionId rather than its row id.
+  sessionId      String?
+  session        VisitorSession? @relation(fields: [sessionId], references: [sessionId], onDelete: SetNull)
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  landingPage    String?
+  conversionPage String?
+
+  // ── CRM linkage ── set by the contact auto-unification engine (see
+  // packages/api/src/routes/forms.ts) when this submission's email matches an
+  // existing Contact, or after creating a new one for it.
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([formId])
+  @@index([pageSlug])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([contactId])
+}
+
+// ── Analytics & Lead Attribution ─────────────────────────────────────────
+// One row per visitor session (first-touch attribution + device/geo
+// snapshot, captured once via POST /api/analytics/session on the visitor's
+// first page load of the session), with PageView rows recording every
+// subsequent navigation. ContactInquiry/FormSubmission above link back to
+// the session that produced them, by sessionId (not a required relation —
+// a lead can still be recorded without a session if tracking never fired).
+
+model VisitorSession {
+  id        String   @id @default(uuid())
+  sessionId String   @unique // the client-generated id from apps/web's analytics.ts, stored in a first-party cookie
+
+  ipAddress String?
+  userAgent String?
+  country   String?
+  city      String?
+  deviceType String? // desktop | mobile | tablet
+  browser   String?
+  os        String?
+
+  // ── Attribution & UTM Parameters (first-touch — captured once, at
+  // session creation, and never overwritten by later visits reusing the
+  // same session cookie) ──
+  referrer        String? // full document.referrer URL
+  referringDomain String? // e.g. "google.com", "linkedin.com", or "direct"
+  landingPage     String? // first page visited this session
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmTerm         String?
+  utmContent      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pageViews   PageView[]
+  inquiries   ContactInquiry[]
+  submissions FormSubmission[]
+  recording   SessionRecording?
+
+  // ── CRM linkage ── set by the contact auto-unification engine once this
+  // session's visitor is identified (an inquiry/submission on it resolves to
+  // a Contact), so the full session (pageviews + recording) surfaces on that
+  // Contact's 360° profile, not just the one submission that identified them.
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([utmSource, utmMedium, utmCampaign])
+  @@index([referringDomain])
+  @@index([contactId])
+}
+
+model PageView {
+  id        String         @id @default(uuid())
+  sessionId String
+  session   VisitorSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  path      String // e.g. "/services/web-development"
+  title     String?
+  referrer  String?
+  duration  Int? // seconds spent on the PREVIOUS page view, reported when this one starts (see AnalyticsTracker.tsx)
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([path])
+  @@index([createdAt])
+}
+
+// ── CRM: Contacts, Pipelines & Deals (GoHighLevel/HubSpot-style) ────────────
+// Contact is the unified 360° profile a visitor/lead resolves to. It is
+// layered ON TOP of ContactInquiry/FormSubmission/VisitorSession rather than
+// replacing them — those keep recording the raw event as it always has, and
+// the contact auto-unification engine (packages/api/src/routes/content.ts and
+// forms.ts) additionally links each one to a Contact, matched by email,
+// creating one if none exists yet.
+
+model Contact {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  firstName      String?
+  lastName       String?
+  phone          String?
+  company        String?
+  status         String   @default("LEAD") // LEAD | OPPORTUNITY | CUSTOMER | ARCHIVED
+  tags           String[]
+  customFields   Json?
+  // Bare reference to User.id (like AuditLog.userId elsewhere in this file) —
+  // deliberately not a relation, so an assigned contact isn't disturbed by a
+  // user being deleted; the CRM UI resolves it against the live user list.
+  assignedUserId String?
+
+  // Null = the default/unassigned workspace (see the Multi-Tenant Agency
+  // Workspaces comment above Organization) — every contact created before
+  // this field existed, and any contact created while no workspace is
+  // selected, stays visible everywhere rather than becoming orphaned.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  deals       Deal[]
+  activities  ContactActivity[]
+  notes       ContactNote[]
+  inquiries   ContactInquiry[]
+  submissions FormSubmission[]
+  sessions    VisitorSession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([assignedUserId])
+  @@index([organizationId])
+}
+
+model Pipeline {
+  id        String          @id @default(uuid())
+  name      String
+  isDefault Boolean         @default(false)
+  stages    PipelineStage[]
+
+  // See Contact.organizationId above for why this is nullable.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([organizationId])
+}
+
+model PipelineStage {
+  id         String   @id @default(uuid())
+  pipelineId String
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  name       String
+  order      Int
+  color      String?
+  // DEFAULT | WON | LOST — drives the automated Deal status sync in
+  // packages/api's deals routes: dragging a Deal into a WON/LOST stage
+  // flips its status to match, and dragging it back into any DEFAULT stage
+  // resets it to OPEN. Plain string (not a Prisma enum), matching this
+  // file's existing convention for admin-configurable small closed sets.
+  stageType  String   @default("DEFAULT")
+  deals      Deal[]
+
+  @@index([pipelineId])
+}
+
+model Deal {
+  id        String        @id @default(uuid())
+  title     String
+  value     Float         @default(0.0)
+  currency  String        @default("USD")
+  stageId   String
+  stage     PipelineStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  contactId String?
+  contact   Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  status    String        @default("OPEN") // OPEN | WON | LOST
+  order     Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([stageId])
+  @@index([contactId])
+  @@index([status])
+}
+
+model ContactActivity {
+  id          String   @id @default(uuid())
+  contactId   String
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  type        String   // FORM_SUBMITTED | PAGE_VIEW | STAGE_CHANGED | NOTE_ADDED | INQUIRY_SUBMITTED | DEAL_CREATED
+  title       String
+  description String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([contactId])
+  @@index([createdAt])
+}
+
+model ContactNote {
+  id        String   @id @default(uuid())
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  // Bare reference to User.id — see Contact.assignedUserId above for why.
+  authorId  String?
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([contactId])
+}
+
+// ── Session Recording (self-hosted rrweb) ───────────────────────────────────
+// One row per recorded VisitorSession. `events` accumulates the rrweb event
+// array as batches arrive from POST /api/analytics/recording (apps/web's
+// tracker sends chunks via sendBeacon/fetch on route change and unload), so a
+// long session's recording is built incrementally rather than in one shot.
+
+model SessionRecording {
+  id            String         @id @default(uuid())
+  sessionId     String         @unique
+  session       VisitorSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  events        Json // rrweb eventWithTime[] accumulated across batches
+  duration      Int            @default(0) // seconds, derived from first/last event timestamps
+  eventCount    Int            @default(0)
+  hasRageClicks Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([duration])
+  @@index([hasRageClicks])
+}
+
+// ── Site content / CMS ──────────────────────────────────────────────────
+
+// Curated testimonial content shown by the Testimonials block — hand-entered
+// in Admin → Reviews, with no link to any other record.
+model Review {
+  id           String   @id @default(cuid())
+  customerName String
+  quote        String
+  rating       Int      @default(5)
+  source       String   @default("Website") // Google, Trustpilot, Website
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  url       String
+  filename  String
+  category  String? // hero, logo, general
+  // Set from the real, signature-verified file kind at upload time (see
+  // packages/api/src/lib/security.ts's detectUploadKind) — never trusted
+  // from a client-supplied Content-Type. Also what the WebP conversion
+  // feature (Gallery → Convert to WebP) reads to decide whether an asset
+  // still needs converting, and what it flips to "image/webp" once it has.
+  mimeType  String   @default("application/octet-stream")
+  // AI-generated (or manually touched-up) alt text — see
+  // POST /api/admin/ai/generate-alt-text and the Gallery's "Auto Alt Text"
+  // button. Null until generated; never auto-populated on upload.
+  altText   String?
+  createdAt DateTime @default(now())
+}
+
+enum PageEditorMode {
+  CLASSIC // rich-HTML WYSIWYG (existing Tiptap editor) — `content` is authoritative
+  BUILDER // JSON block tree (new visual builder) — `layout` is authoritative
+}
+
+// Staging & Scheduled Publishing lifecycle (Page.status / Post's reused
+// `status` field below). DRAFT/STAGED never touch what's actually live —
+// `content`/`layout` (Page) and `content`/`layout` (Post) stay exactly what
+// the public site serves until a PUBLISH (or a scheduled auto-publish)
+// promotes `stagedLayout` into them. See publishWorker.ts.
+enum PublishStatus {
+  DRAFT
+  STAGED
+  PUBLISHED
+  SCHEDULED
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+
+  editorMode PageEditorMode @default(CLASSIC)
+
+  content   String? // rich HTML from the admin's WYSIWYG editor (CLASSIC mode)
+  layout    Json?   // LayoutDocument tree from the visual builder (BUILDER mode) — see @marwa/builder
+
+  // ── Staging & Scheduled Publishing ── `published` below remains the ONLY
+  // field apps/web's public queries filter on (zero risk to existing pages
+  // on rollout); `status` tracks the richer admin-facing lifecycle and is
+  // kept in sync with `published` by the stage/publish/schedule endpoints
+  // (packages/api/src/routes/admin/pages.ts) and by publishWorker.ts.
+  // stagedLayout/stagedContent hold an unpublished snapshot produced by
+  // "Save as Staged Draft" — promoted into content/layout on publish.
+  status        PublishStatus @default(PUBLISHED)
+  stagedContent String?
+  stagedLayout  Json?
+  scheduledAt   DateTime?
+
+  // Null = the default/unassigned workspace — see Contact.organizationId above.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  // SEO / social sharing
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  ogImage         String?
+  // Search-engine robots directives — maps directly to Next's Metadata.robots
+  // { index, follow }. Defaulted true so existing pages keep being indexed
+  // exactly as before this field existed.
+  metaRobotsIndex  Boolean @default(true)
+  metaRobotsFollow Boolean @default(true)
+
+  // Raw code injection — kept minimal on purpose: headTags renders near the
+  // top of <body> (not literally <head>) so it works for common embed/
+  // tracking snippets without needing a full HTML head parser.
+  headTags  String?
+  customCss String?
+  customJs  String?
+
+  template  String   @default("default") // default | full-width | sidebar | landing | contact
+
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+// ── Dynamic Collections (Webflow-style CMS content types) ─────────────────
+// Lets the admin define arbitrary repeatable content types (e.g. "Case
+// Studies", "Services", "Team Members") from the UI, without a schema
+// migration per type. `Collection` is the type definition, `CollectionField`
+// is its field schema, `CollectionItem` is a row of that type whose `data`
+// shape is validated (application-side) against the field schema.
+
+enum CollectionFieldType {
+  TEXT
+  RICH_TEXT
+  NUMBER
+  BOOLEAN
+  IMAGE
+  IMAGE_LIST
+  DATE
+  SELECT
+  REFERENCE // points at an item in another Collection, by id
+  JSON // escape hatch for structured data with no dedicated field type yet
+}
+
+enum CollectionItemStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  key         String   @unique // machine name, e.g. "case-studies" — used in the block registry/API
+  name        String // display name, e.g. "Case Studies"
+  description String?
+  icon        String?
+
+  fields CollectionField[]
+  items  CollectionItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CollectionField {
+  id           String              @id @default(cuid())
+  collectionId String
+  collection   Collection          @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  key      String // machine name within the collection, e.g. "priceFrom"
+  label    String
+  type     CollectionFieldType
+  required Boolean             @default(false)
+  order    Int                 @default(0)
+  options  Json? // SELECT: string[] of choices; REFERENCE: { targetCollectionKey }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([collectionId, key])
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  slug   String?
+  data   Json // { [fieldKey]: value }, shaped by the collection's CollectionField rows
+  status CollectionItemStatus @default(DRAFT)
+  order  Int                  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([collectionId, slug])
+  @@index([collectionId, status])
+}
+
+// Multiple named menus, each with nested items (see MenuItem.parentId),
+// matching a real WordPress-style menu editor. SiteSettings.primaryMenuId
+// picks which one SiteHeader's hard-coded top nav renders; the Nav Menu block
+// (Theme Builder) can select any menu independently via its own `menuId` prop.
+model Menu {
+  id           String     @id @default(cuid())
+  name         String
+  autoAddPages Boolean    @default(false)
+  // Header assignment is ALSO still driven by SiteSettings.primaryMenuId
+  // (SiteHeader's existing selection mechanism) — showInHeader is additive,
+  // not a replacement, so existing header setups keep working untouched.
+  // showInFooter is the new capability: when true, SiteFooter renders this
+  // menu's top-level items instead of the static FooterLink groups.
+  showInHeader Boolean    @default(false)
+  showInFooter Boolean    @default(false)
+  items        MenuItem[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model MenuItem {
+  id           String     @id @default(cuid())
+  menuId       String
+  menu         Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  // Nullable self-relation for one level of nesting (dropdown submenus).
+  // onDelete: SetNull promotes grandchildren to top-level rather than
+  // cascading a parent's deletion down through its whole subtree.
+  parentId     String?
+  parent       MenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children     MenuItem[] @relation("MenuItemChildren")
+  label        String
+  href         String
+  cssClasses   String?
+  openInNewTab Boolean    @default(false)
+  active       Boolean    @default(true)
+  order        Int        @default(0)
+  // Optional image shown in this item's own dropdown panel — when a top-level
+  // item has children with images set, its dropdown shows a swap-on-hover
+  // image next to the list.
+  previewImage String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([menuId])
+  @@index([parentId])
+}
+
+model FooterLink {
+  id        String   @id @default(cuid())
+  group     String // "Quick Links" | "Legal"
+  label     String
+  href      String
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id              String   @id @default("singleton")
+  siteName        String   @default("Marwa Digital")
+  tagline         String   @default("Design, Build, Grow.")
+  description     String   @default("A digital studio building websites, brands, and products.")
+  contactEmail    String   @default("hello@marwadigital.com")
+  contactPhone    String   @default("")
+  // Digits (with optional leading +) used for the site-wide floating
+  // WhatsApp button's wa.me link — left empty, the button doesn't render.
+  whatsappNumber  String?
+  contactAddress  String   @default("")
+  contactResponseTime String @default("Under 24 Hours")
+  facebookUrl     String?
+  instagramUrl    String?
+  twitterUrl      String?
+  youtubeUrl      String?
+  linkedinUrl     String?
+
+  logoImage             String?
+  footerCopyrightText   String   @default("All Rights Reserved © {year} {siteName}.")
+
+  smoothScrollEnabled Boolean @default(false)
+  customCursorEnabled Boolean @default(false)
+  cursorGlowEnabled   Boolean @default(false)
+
+  // Copy for the built-in /contact route (also available as a builder block).
+  contactHeroImage    String   @default("")
+  contactEyebrow      String   @default("Let's Work Together")
+  contactHeading      String   @default("Get In Touch")
+  contactParagraph    String   @default("Tell us about your project and we'll get back to you within one business day.")
+  contactCtaPrimaryLabel   String @default("Start a Project")
+  contactCtaSecondaryLabel String @default("Request a Quote")
+  contactInfoEyebrow   String  @default("Contact")
+  contactInfoTitle     String  @default("Talk To Us")
+  contactBusinessHours String  @default("Mon–Fri, 9:00–18:00")
+  contactFaqHeading    String  @default("Frequently Asked Questions")
+
+  // Which of the 3 coded layout variants /blog and /blog/[slug] render —
+  // see apps/web/src/components/blog/{archive,post}/Template{A,B,C}.tsx.
+  // "A" | "B" | "C", not a Prisma enum — matches PageTemplate/editorMode's
+  // existing plain-string-validated-by-zod convention elsewhere in this schema.
+  blogArchiveTemplate String @default("A")
+  blogPostTemplate    String @default("A")
+
+  // ── Integrations ── Site Keys are public (safe client-side, e.g. rendering
+  // a reCAPTCHA widget); Secret Keys are server-only verification credentials
+  // and must NEVER be included in the public GET /api/settings response —
+  // see the explicit strip in packages/api/src/routes/content.ts.
+  recaptchaV2SiteKey      String?
+  recaptchaV2SecretKey    String?
+  recaptchaV3SiteKey      String?
+  recaptchaV3SecretKey    String?
+  recaptchaV3ScoreThreshold String @default("0.5")
+
+  // ── Outgoing Email (SMTP) ── All fields are server-only and must NEVER be
+  // included in the public /api/settings response. Falls back to SMTP_* env
+  // vars when unset.
+  smtpHost      String?
+  smtpPort      String?
+  smtpUser      String?
+  smtpPassword  String?
+  smtpSecure    Boolean @default(true)
+  smtpFromEmail String?
+  smtpFromName  String?
+
+  // Which Menu SiteHeader's hard-coded top nav renders (its top-level items
+  // only — SiteHeader has no generic nested-dropdown renderer, unlike the
+  // Nav Menu block, which can pick any menu independently via its own prop).
+  primaryMenuId String?
+
+  // ── General Settings (Admin → Settings → General) ── siteName/tagline
+  // above already serve as "Site Title"/"Tagline" on this screen; these are
+  // the fields that had no home anywhere yet.
+  siteIcon     String? // favicon — an /uploads/** URL from the media library, like logoImage
+  siteUrl      String  @default("https://marwadigital.com")
+  adminEmail   String  @default("hello@marwadigital.com")
+  timezone     String  @default("UTC+0")
+  // PHP-date()-style tokens (F j, Y / g:i a / …) — matches the WordPress
+  // General Settings convention this screen is modeled on. Parsed by
+  // apps/web's formatDate()/apps/admin's own live-preview copy.
+  dateFormat   String  @default("F j, Y")
+  timeFormat   String  @default("g:i a")
+  siteLanguage String  @default("en")
+
+  // ── Reading Settings (Admin → Settings → Reading) ──
+  // "static" | "posts" — when "posts", apps/web's `/` renders the blog
+  // archive (using blogArchiveTemplate above) instead of the chosen page.
+  homepageDisplay     String  @default("static")
+  // Page.slug of an admin-chosen regular Page to render at `/` (in "static"
+  // mode) or in place of the blog archive at `/blog`. A slug, not an id: the
+  // public GET /api/pages/:slug lookup apps/web already uses everywhere else
+  // (Page has no public by-id endpoint, and a slug is what's actually
+  // stable/meaningful to store here) — same bare-reference pattern as
+  // primaryMenuId above, no relation constraint, a deleted/unpublished page
+  // just falls back to the built-in route instead of erroring.
+  homepagePageSlug String?
+  postsPageSlug    String?
+  postsPerPage        Int     @default(10)
+  feedItemCount       Int     @default(10)
+  feedContentMode     String  @default("full") // "full" | "excerpt" — apps/web's /feed.xml route
+  searchEngineNoindex Boolean @default(false)
+
+  // ── Writing Settings (Admin → Settings → Writing) ──
+  defaultPostCategoryId String? // Category.id — no relation constraint (same bare-reference pattern as primaryMenuId above), a deleted category just falls back to none
+  defaultPostFormat     String  @default("STANDARD")
+  // Newline-separated ping-service URLs. Stored for parity with the admin
+  // screen; apps/api does NOT actually fire these on publish — real update-
+  // ping services (pingomatic etc.) are effectively defunct today, so
+  // building and firing WordPress's XML-RPC ping protocol against them
+  // would be dead code exercising a dead protocol.
+  updateServiceUrls String? @default("https://rpc.pingomatic.com/")
+
+  // ── Permalinks (Admin → Settings → Permalinks) ── PHP-date()-token-style
+  // structure string (mirrors dateFormat above), always /blog-relative — see
+  // apps/web/src/lib/blogPermalink.ts for the token vocabulary and the
+  // catch-all route that parses it back. categoryBase/tagBase are stored for
+  // parity with WordPress's screen but unused: this site has no path-based
+  // category/tag archive route to rebase (categories/tags are filtered via
+  // /blog?category=… query params instead).
+  permalinkStructure String  @default("/%postname%/")
+  categoryBase       String?
+  tagBase            String?
+
+  // ── Analytics & Lead Attribution (Admin → Analytics & Leads → Settings) ──
+  analyticsAnonymizeIp        Boolean @default(false)
+  analyticsExcludeAdminTraffic Boolean @default(true)
+  analyticsCookieDays         Int     @default(30)
+  // Self-hosted rrweb session recording (Admin → Analytics & Leads →
+  // Settings) — apps/web's AnalyticsTracker only calls rrweb.record() when
+  // this is true AND the visitor hasn't set the admin-traffic opt-out cookie.
+  sessionRecordingEnabled     Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+}
+
+// Theme Builder: reusable site-wide Header/Footer templates, each with its
+// own Include/Exclude condition rules deciding which pages it applies to
+// (see apps/web/src/lib/resolveSiteTemplate.ts for the matching algorithm).
+// Multiple templates of the same `type` can exist — e.g. a default
+// Entire-Site header plus a more specific one scoped to blog posts — the
+// most specific matching, non-excluded one wins per page. Falls back to the
+// existing hand-coded SiteHeader/SiteFooter components when nothing matches
+// (including when no SiteTemplate rows exist yet at all), so this is
+// additive and never a hard dependency for the site to render.
+model SiteTemplate {
+  id         String   @id @default(cuid())
+  type       String // "header" | "footer"
+  title      String
+  layout     Json // LayoutDocument — see @marwa/builder
+  conditions Json // SiteTemplateCondition[] — see @marwa/builder
+  priority   Int      @default(0) // manual tie-breaker when two templates match the same page at equal specificity — lower wins
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([type])
+}
+
+// A reusable, site-wide, independently-editable style definition. A
+// LayoutNode may attach zero or more of these by id (LayoutNode.classIds in
+// @marwa/builder); editing a class's `style` here changes every element
+// that has it attached, anywhere on the site.
+model StyleClass {
+  id        String   @id @default(cuid())
+  name      String   @unique // the chip label shown in the panel, e.g. "home-style-guide-content-heading"
+  style     Json // LayoutNodeStyle-shaped bag — see @marwa/builder (same shape a node's own `style` uses, including tablet/mobile/hover/focus/active/visited)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A reusable, named GSAP animation timeline — Webflow calls this a "Timed
+// Animation". Any trigger on any element can start it by id instead of
+// embedding its own keyframe config; editing it here updates every trigger
+// that references it. Distinct from a node's own inline `timelines` (still
+// fully supported, untouched) — this table is an opt-in alternative for
+// animations meant to be reused.
+model TimedAnimation {
+  id        String   @id @default(cuid())
+  name      String   @unique // e.g. "text-color", "show-arrow" — shown in the searchable picker
+  timeline  Json // BlockTimeline shape minus `trigger` — see @marwa/builder
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  order     Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── Blog ─────────────────────────────────────────────────────────────────
+// A dedicated, WordPress-style content type — distinct from `Page` (which is
+// for one-off site pages like /about or /contact) even though it reuses the
+// exact same dual-editor shape (`editorMode`/`content`/`layout`) and SEO
+// field set, so a post can be written as plain rich text OR as a full
+// Visual Builder block tree, exactly like a Page can.
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  // publishedAt is in the future — public queries treat a SCHEDULED post as
+  // not-yet-visible until publishedAt has passed (checked at query time in
+  // packages/api/src/routes/content.ts, not via a cron flipping the enum —
+  // simpler and can't drift if a scheduled job fails to run).
+  SCHEDULED
+  // Staging & Scheduled Publishing (see Page.status/stagedLayout for the
+  // matching Page-side comment) — a "Save as Staged Draft" save that leaves
+  // the live content/layout untouched. Reuses this field instead of adding a
+  // second parallel status column, since Post already has one lifecycle
+  // enum; stagedLayout below is the new snapshot field.
+  STAGED
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  // Hex color for the category badge pill shown on cards/listing filters.
+  color       String?
+  posts       Post[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id      String  @id @default(cuid())
+  slug    String  @unique
+  title   String
+  excerpt String?
+
+  editorMode PageEditorMode @default(CLASSIC)
+  content    String? // rich HTML from the WYSIWYG editor (CLASSIC mode)
+  layout     Json? // LayoutDocument tree from the visual builder (BUILDER mode) — see @marwa/builder
+
+  featuredImage String?
+
+  // Unpublished snapshot from "Save as Staged Draft" — promoted into
+  // content/layout on publish, same mechanism as Page.stagedLayout above.
+  stagedContent String?
+  stagedLayout  Json?
+  scheduledAt   DateTime?
+
+  // Null = the default/unassigned workspace — see Contact.organizationId above.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id])
+
+  categories Category[]
+  tags       Tag[]
+
+  status     PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  // Minutes, recomputed server-side on every save from the word count of
+  // `content` (CLASSIC) or the concatenated text content of `layout`
+  // (BUILDER) at ~200 words/minute — never hand-entered.
+  readingTime Int?
+  isFeatured  Boolean    @default(false)
+
+  // SEO / social sharing — same shape as Page's, plus canonicalUrl (posts
+  // are far more likely to get syndicated/republished elsewhere than a
+  // static site page, where a canonical override actually matters).
+  metaTitle       String?
+  metaDescription String?
+  canonicalUrl    String?
+  ogImage         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Real sequential number (distinct from the cuid `id`) — backs the
+  // "Plain" (/blog/?p=123) and "Numeric" (/blog/archives/123) Permalink
+  // structures (Admin → Settings → Permalinks), which need a genuine short
+  // number the way WordPress's own auto-increment post ID does.
+  postNumber Int @unique @default(autoincrement())
+
+  // WordPress-style Post Format — stored and admin-editable (Writing
+  // Settings' Default Post Format + a per-post override), but no blog
+  // template currently renders anything differently per format. Plain
+  // string, not an enum, matching this file's existing convention for
+  // small closed-option settings (e.g. blogArchiveTemplate above).
+  format String @default("STANDARD")
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([organizationId])
+}
+
+// ── Audit Logging & Content Revisions ───────────────────────────────────
+// AuditLog rows are written by packages/api/src/lib/auditLogger.ts, mounted
+// as a per-router middleware on every /api/admin/* route in server.ts — one
+// row per successful (2xx) state-changing (POST/PATCH/PUT/DELETE) request.
+// userId/userEmail are both stored (not just a relation) so a log entry
+// survives and stays legible even after the user who made the change is
+// deleted.
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  userEmail  String?
+  action     String // "{RESOURCE}_{CREATE|UPDATE|DELETE}", e.g. "PAGE_UPDATE", "USER_DELETE" — see auditLogger.ts
+  resource   String // e.g. "Page", "User", "SiteSettings"
+  resourceId String?
+  details    Json? // sanitized request body (secrets like password/token stripped) — a diff/summary of what changed
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// One row per saved Page/Post version, written automatically by
+// revisionService.ts whenever an admin saves either (see admin/pages.ts and
+// admin/posts.ts) — the entity's own row always holds the CURRENT version;
+// these are read-only history, restorable via POST /api/admin/revisions/:id/restore.
+model ContentRevision {
+  id         String   @id @default(uuid())
+  entityType String // "PAGE" | "POST"
+  entityId   String // Page.id or Post.id
+  title      String
+  content    String?
+  layout     Json? // LayoutDocument snapshot — see @marwa/builder
+  seoTitle   String?
+  seoDesc    String?
+  authorId   String?
+  author     User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+// ── Password Reset ───────────────────────────────────────────────────────
+// tokenHash is SHA-256 of the random token actually emailed to the user —
+// only the hash is ever persisted, so a leaked database dump can't be used
+// to reset anyone's password (same principle as passwordHash itself, just a
+// faster/unsalted hash since these are single-use, short-lived, high-entropy
+// random tokens rather than user-chosen secrets).
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ── AI Content & SEO Assistant ──────────────────────────────────────────
+// One row per AI call made from the admin (text rewrite, SEO metadata,
+// alt-text generation) — a usage/cost ledger, not application data anything
+// else reads back. See packages/api/src/lib/aiProvider.ts.
+model AiGenerationLog {
+  id         String   @id @default(uuid())
+  userId     String
+  feature    String // "TEXT_REWRITE" | "SEO_METADATA" | "ALT_TEXT"
+  prompt     String
+  tokensUsed Int      @default(0)
+  model      String   @default("gpt-4o-mini")
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([feature])
+  @@index([createdAt])
+}
+
+// ── Visual Marketing Automation ─────────────────────────────────────────
+// A no-code automation ("if this, then that") — `nodes`/`edges` are the
+// React Flow graph exactly as the visual editor (apps/admin's Workflows
+// page) produced them; the execution engine (packages/api/src/services/
+// workflowEngine.ts) walks that same graph at run time rather than
+// compiling it into a separate representation, so the editor and the
+// runner are always looking at identical data.
+model AutomationWorkflow {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(false)
+  triggerType String // "FORM_SUBMITTED" | "TAG_ADDED" | "DEAL_STAGE_CHANGED" | "SESSION_RAGE_CLICK"
+  triggerData Json? // e.g. { formId: "contact-form" } | { tag: "vip" } | { toStageType: "WON" }
+  nodes       Json // ReactFlow Node[] (trigger/action/condition/delay steps)
+  edges       Json // ReactFlow Edge[] (connections between the nodes above)
+
+  // See Contact.organizationId above for why this is nullable.
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  logs WorkflowExecutionLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([triggerType])
+  @@index([isActive])
+  @@index([organizationId])
+}
+
+// One row per node the engine has executed (or scheduled) for a given
+// trigger firing — a PENDING row with a future executedAt is how a
+// Wait/Delay step is represented: the scheduler poller (see
+// workflowEngine.ts) picks it back up once its time arrives, rather than
+// holding a live in-memory timer that a server restart would lose.
+model WorkflowExecutionLog {
+  id          String             @id @default(uuid())
+  workflowId  String
+  workflow    AutomationWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  contactId   String? // bare reference to Contact.id — a log entry should survive that contact being deleted
+  status      String // "PENDING" | "SUCCESS" | "FAILED"
+  currentNode String? // the ReactFlow node id this row is/was executing
+  error       String?
+  executedAt  DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([contactId])
+  @@index([status])
+  @@index([executedAt])
+}
+
+// Reusable marketing email bodies a workflow's "Send Email" action picks
+// from by id — distinct from the existing `EmailTemplate` model above
+// (that one is the fixed, code-defined set of transactional emails this
+// CMS itself sends, keyed by a known `key` like "CONTACT_INQUIRY"; this one
+// is an open-ended, admin-authored library for marketing automation, with
+// no relationship to those system emails).
+model AutomationEmailTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  subject   String
+  htmlBody  String
+  jsonBody  Json? // optional block-based source the admin email editor may use to (re)generate htmlBody
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ── Heatmaps & Form Field Analytics ─────────────────────────────────────
+// One row per click — intentionally NOT pre-aggregated at write time (the
+// Heatmap Visualizer buckets/renders density client-side per page/device/
+// date-range query), since the useful grouping changes per view and
+// aggregating at ingest would bake in a resolution the UI can't undo.
+model HeatmapClick {
+  id        String   @id @default(uuid())
+  path      String
+  xPercent  Float // relative X position (0-100%) — resolution-independent, works across viewport widths
+  yPx       Int // absolute Y offset in px from the top of the full page (scroll position + click offset)
+  device    String   @default("DESKTOP") // "DESKTOP" | "MOBILE" | "TABLET"
+  createdAt DateTime @default(now())
+
+  @@index([path])
+  @@index([createdAt])
+  @@index([device])
+}
+
+// One row per (form, field) pair, updated in place (upsert-increment) as
+// interaction/abandonment events arrive — a running tally rather than a
+// per-event log, matching what the Form Field Abandonment chart actually
+// needs (a rate per field), without an unbounded event table to aggregate
+// on every read.
+model FormFieldAnalytics {
+  id           String   @id @default(uuid())
+  formId       String
+  fieldId      String
+  fieldName    String
+  interactions Int      @default(0) // focus/typing events
+  abandonments Int      @default(0) // the form was left without submitting after this field was touched
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([formId, fieldId])
+  @@index([formId])
+}
+
+// ── Backup & Disaster Recovery ──────────────────────────────────────────
+// One row per generated archive. storagePath is a server-local path under
+// packages/api's backups/ directory (this app has no external object storage
+// today — same "local disk under a dedicated folder" convention as
+// MediaAsset's /uploads), streamed back out by GET /:id/download rather than
+// exposed as a public static path (backups can contain the entire database).
+model SystemBackup {
+  id             String        @id @default(uuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  filename       String
+  fileSize       Int // bytes
+  type           String        @default("FULL") // "FULL" | "DATABASE_ONLY" | "UPLOADS_ONLY"
+  storagePath    String
+  status         String        @default("COMPLETED") // "PENDING" | "COMPLETED" | "FAILED"
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId])
+  @@index([createdAt])
+}

@@ -1,0 +1,35 @@
+{
+  "name": "marwa-digital",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:e2e": "npm run test:e2e --workspace=@marwa/web && npm run test:e2e --workspace=@marwa/admin",
+    "db:generate": "npm run generate --workspace=@marwa/db",
+    "db:migrate": "npm run migrate --workspace=@marwa/db"
+  },
+  "devDependencies": {
+    "@types/prop-types": "^15.7.15",
+    "turbo": "^2.3.0",
+    "wait-on": "^9.1.0"
+  },
+  "packageManager": "npm@11.16.0",
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.1": true,
+    "prisma@6.19.3": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  }
+}

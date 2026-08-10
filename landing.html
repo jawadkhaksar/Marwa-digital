@@ -1,0 +1,2495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Marwa Digital - Premier digital marketing agency specializing in SEO, web design, social media marketing, and brand strategy. Transform your business with data-driven digital solutions.">
+    <meta name="keywords"
+        content="digital marketing agency, SEO services, web design, social media marketing, brand strategy, digital transformation, online marketing">
+    <meta name="author" content="Marwa Digital">
+    <meta property="og:title" content="Marwa Digital | Transform Your Digital Presence">
+    <meta property="og:description"
+        content="Expert digital marketing solutions that drive real results. SEO, Web Design, Social Media & Brand Strategy.">
+    <meta property="og:type" content="website">
+    <title>Marwa Digital | Digital Marketing Agency That Delivers Results</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --deep-navy: #080B1F;
+            --pure-white: #FFFFFF;
+            --electric-blue: #2563FF;
+            --purple: #7C3AED;
+            --off-white: #F4F6FA;
+            --gradient: linear-gradient(135deg, #2563FF, #7C3AED);
+            --gradient-vivid: linear-gradient(135deg, #2563FF, #FC3AED);
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-muted: rgba(255, 255, 255, 0.55);
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            background-color: var(--deep-navy);
+            color: var(--pure-white);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--deep-navy);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--electric-blue);
+            border-radius: 3px;
+        }
+
+        /* ===== UTILITY ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .gradient-text {
+            background: var(--gradient-vivid);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gradient-vivid);
+            color: var(--pure-white);
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(37, 99, 255, 0.4);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: var(--pure-white);
+            padding: 13px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--electric-blue);
+            color: var(--electric-blue);
+            background: rgba(37, 99, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--electric-blue);
+            margin-bottom: 16px;
+        }
+
+        .section-label::before {
+            content: '';
+            width: 20px;
+            height: 2px;
+            background: var(--gradient-vivid);
+            border-radius: 2px;
+        }
+
+        /* ===== NOISE OVERLAY ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        /* ===== NAVIGATION ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 0;
+            transition: all 0.4s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(8, 11, 31, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--gradient-vivid);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--pure-white);
+        }
+
+        .logo-text span {
+            background: var(--gradient-vivid);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-vivid);
+            transition: width 0.3s;
+            border-radius: 2px;
+        }
+
+        .nav-links a:hover {
+            color: var(--pure-white);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--pure-white);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* ===== MOBILE MENU ===== */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 11, 31, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            color: var(--pure-white);
+            text-decoration: none;
+            font-size: 28px;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--electric-blue);
+        }
+
+        .mobile-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 120px 0 80px;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        .hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+        }
+
+        .hero-orb-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--electric-blue);
+            top: -100px;
+            right: -100px;
+            animation: float1 8s ease-in-out infinite;
+        }
+
+        .hero-orb-2 {
+            width: 400px;
+            height: 400px;
+            background: var(--purple);
+            bottom: -50px;
+            left: -50px;
+            animation: float2 10s ease-in-out infinite;
+        }
+
+        .hero-orb-3 {
+            width: 300px;
+            height: 300px;
+            background: #FC3AED;
+            top: 50%;
+            left: 40%;
+            animation: float3 12s ease-in-out infinite;
+        }
+
+        @keyframes float1 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(-30px, 20px) scale(1.05);
+            }
+        }
+
+        @keyframes float2 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(20px, -30px) scale(1.08);
+            }
+        }
+
+        @keyframes float3 {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(-20px, 15px) scale(0.95);
+            }
+        }
+
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(37, 99, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 99, 255, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(37, 99, 255, 0.12);
+            border: 1px solid rgba(37, 99, 255, 0.3);
+            border-radius: 50px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #93B4FF;
+            margin-bottom: 28px;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: #4ADE80;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #4ADE80;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(0.85);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(42px, 7vw, 80px);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s 0.2s ease both;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(16px, 2vw, 19px);
+            color: var(--text-muted);
+            max-width: 560px;
+            line-height: 1.7;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s 0.4s ease both;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s 0.6s ease both;
+        }
+
+        .hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            animation: fadeInUp 0.8s 0.8s ease both;
+        }
+
+        .stat-item {}
+
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            background: var(--gradient-vivid);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .hero-visual {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 480px;
+            z-index: 2;
+            animation: fadeInRight 1s 0.5s ease both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translate(40px, -50%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(0, -50%);
+            }
+        }
+
+        /* Dashboard Card */
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+        }
+
+        .dash-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .dash-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .dash-badge {
+            background: rgba(74, 222, 128, 0.12);
+            color: #4ADE80;
+            border: 1px solid rgba(74, 222, 128, 0.25);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .dash-metric {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .dash-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 80px;
+            margin-bottom: 16px;
+        }
+
+        .dash-bar {
+            flex: 1;
+            background: rgba(37, 99, 255, 0.2);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dash-bar-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--gradient-vivid);
+            border-radius: 4px;
+            animation: growBar 1.5s ease forwards;
+        }
+
+        @keyframes growBar {
+            from {
+                height: 0;
+            }
+        }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .mini-stat {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .mini-stat-value {
+            font-weight: 700;
+            font-size: 18px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .mini-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== TRUSTED BY ===== */
+        .trusted {
+            padding: 48px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .trusted-label {
+            text-align: center;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .trusted-logos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 48px;
+        }
+
+        .trusted-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.25);
+            letter-spacing: -0.5px;
+            transition: color 0.3s;
+            cursor: default;
+        }
+
+        .trusted-logo:hover {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ===== SERVICES ===== */
+        .services {
+            padding: 100px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 64px;
+        }
+
+        .section-header h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .service-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-vivid);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(37, 99, 255, 0.4);
+            box-shadow: 0 30px 60px rgba(37, 99, 255, 0.15);
+        }
+
+        .service-card:hover::before {
+            opacity: 0.04;
+        }
+
+        .service-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .service-icon-1 {
+            background: rgba(37, 99, 255, 0.15);
+        }
+
+        .service-icon-2 {
+            background: rgba(124, 58, 237, 0.15);
+        }
+
+        .service-icon-3 {
+            background: rgba(252, 58, 237, 0.15);
+        }
+
+        .service-icon-4 {
+            background: rgba(37, 99, 255, 0.15);
+        }
+
+        .service-icon-5 {
+            background: rgba(124, 58, 237, 0.15);
+        }
+
+        .service-icon-6 {
+            background: rgba(252, 58, 237, 0.15);
+        }
+
+        .service-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .service-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .service-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--electric-blue);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            position: relative;
+            transition: gap 0.3s;
+        }
+
+        .service-link:hover {
+            gap: 10px;
+        }
+
+        /* ===== HOW IT WORKS ===== */
+        .process {
+            padding: 100px 0;
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+            position: relative;
+        }
+
+        .process-steps::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--electric-blue), var(--purple), transparent);
+        }
+
+        .step-card {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--gradient-vivid);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 0 6px rgba(37, 99, 255, 0.12);
+        }
+
+        .step-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 17px;
+            margin-bottom: 10px;
+        }
+
+        .step-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ===== RESULTS ===== */
+        .results {
+            padding: 100px 0;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .results-visual {
+            position: relative;
+        }
+
+        .results-main-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+        }
+
+        .chart-area {
+            height: 200px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .chart-line {
+            width: 100%;
+            height: 100%;
+        }
+
+        .floating-badge {
+            position: absolute;
+            background: rgba(8, 11, 31, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .floating-badge-1 {
+            top: -20px;
+            right: 20px;
+        }
+
+        .floating-badge-2 {
+            bottom: 0px;
+            left: -20px;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .results-content {}
+
+        .results-content h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(30px, 4vw, 46px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .results-content p {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 32px;
+        }
+
+        .results-items {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+
+        .result-item-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(74, 222, 128, 0.12);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #4ADE80;
+            flex-shrink: 0;
+        }
+
+        /* ===== TESTIMONIALS ===== */
+        .testimonials {
+            padding: 100px 0;
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .testimonial-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            transition: all 0.4s;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(37, 99, 255, 0.3);
+        }
+
+        .stars {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .star {
+            color: #F59E0B;
+            font-size: 14px;
+        }
+
+        .testimonial-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            font-family: 'Space Grotesk', sans-serif;
+            flex-shrink: 0;
+        }
+
+        .avatar-1 {
+            background: linear-gradient(135deg, #2563FF, #7C3AED);
+        }
+
+        .avatar-2 {
+            background: linear-gradient(135deg, #7C3AED, #FC3AED);
+        }
+
+        .avatar-3 {
+            background: linear-gradient(135deg, #FC3AED, #2563FF);
+        }
+
+        .avatar-4 {
+            background: linear-gradient(135deg, #2563FF, #FC3AED);
+        }
+
+        .avatar-5 {
+            background: linear-gradient(135deg, #7C3AED, #2563FF);
+        }
+
+        .avatar-6 {
+            background: linear-gradient(135deg, #FC3AED, #7C3AED);
+        }
+
+        .author-name {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .author-title {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ===== PRICING ===== */
+        .pricing {
+            padding: 100px 0;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 36px;
+            position: relative;
+            transition: all 0.4s;
+        }
+
+        .pricing-card.featured {
+            background: linear-gradient(135deg, rgba(37, 99, 255, 0.1), rgba(124, 58, 237, 0.1));
+            border-color: rgba(37, 99, 255, 0.4);
+            transform: scale(1.04);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 30px 60px rgba(37, 99, 255, 0.15);
+        }
+
+        .pricing-card.featured:hover {
+            transform: scale(1.04) translateY(-6px);
+        }
+
+        .featured-tag {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-vivid);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 5px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .plan-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .plan-price {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 4px;
+        }
+
+        .plan-price sup {
+            font-size: 24px;
+            letter-spacing: 0;
+            vertical-align: top;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .plan-period {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .plan-divider {
+            height: 1px;
+            background: var(--border);
+            margin-bottom: 24px;
+        }
+
+        .plan-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .plan-features li .check {
+            color: #4ADE80;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .plan-features li .cross {
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .plan-features li.disabled {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== FAQ ===== */
+        .faq {
+            padding: 100px 0;
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        .faq-list {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .faq-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .faq-item.open {
+            border-color: rgba(37, 99, 255, 0.4);
+        }
+
+        .faq-question {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            gap: 16px;
+            user-select: none;
+        }
+
+        .faq-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(37, 99, 255, 0.12);
+            border: 1px solid rgba(37, 99, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--electric-blue);
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .faq-item.open .faq-icon {
+            background: var(--gradient-vivid);
+            border-color: transparent;
+            color: white;
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s;
+        }
+
+        .faq-item.open .faq-answer {
+            max-height: 300px;
+        }
+
+        .faq-answer-inner {
+            padding: 0 24px 20px;
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            padding: 100px 0;
+        }
+
+        .cta-box {
+            background: linear-gradient(135deg, rgba(37, 99, 255, 0.12), rgba(124, 58, 237, 0.12));
+            border: 1px solid rgba(37, 99, 255, 0.25);
+            border-radius: 28px;
+            padding: 80px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(37, 99, 255, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .cta-box h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(30px, 5vw, 52px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .cta-box p {
+            color: var(--text-muted);
+            font-size: 17px;
+            max-width: 500px;
+            margin: 0 auto 36px;
+            position: relative;
+        }
+
+        .cta-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .cta-note {
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 60px 0 32px;
+        }
+
+        .footer-top {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 48px;
+        }
+
+        .footer-brand {}
+
+        .footer-desc {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+            margin: 16px 0 24px;
+            max-width: 280px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .social-link {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            background: var(--gradient-vivid);
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+
+        .footer-col h4 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--pure-white);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-bottom-text {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .footer-bottom-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-bottom-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s;
+        }
+
+        .footer-bottom-links a:hover {
+            color: var(--pure-white);
+        }
+
+        /* ===== SCROLL REVEAL ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 {
+            transition-delay: 0.1s;
+        }
+
+        .reveal-delay-2 {
+            transition-delay: 0.2s;
+        }
+
+        .reveal-delay-3 {
+            transition-delay: 0.3s;
+        }
+
+        .reveal-delay-4 {
+            transition-delay: 0.4s;
+        }
+
+        .reveal-delay-5 {
+            transition-delay: 0.5s;
+        }
+
+        /* ===== COUNTER ===== */
+        .count-up {
+            display: inline;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .hero-visual {
+                display: none;
+            }
+
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .process-steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .process-steps::before {
+                display: none;
+            }
+
+            .footer-top {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .nav-links,
+            .nav-cta {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hero {
+                text-align: center;
+            }
+
+            .hero-content {
+                max-width: 100%;
+            }
+
+            .hero-subtitle {
+                max-width: 100%;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+                gap: 28px;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .pricing-card.featured:hover {
+                transform: translateY(-6px);
+            }
+
+            .footer-top {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .cta-box {
+                padding: 48px 24px;
+            }
+
+            .process-steps {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .section-label {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .process-steps {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== MOBILE MENU ===== -->
+    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-label="Mobile navigation">
+        <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+        <a href="#services">Services</a>
+        <a href="#results">Results</a>
+        <a href="#process">Process</a>
+        <a href="#testimonials">Testimonials</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contact" class="btn-primary" style="font-size:18px">Get Started</a>
+    </div>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav id="navbar" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="#" class="logo" aria-label="Marwa Digital Home">
+                    <div class="logo-icon">M</div>
+                    <span class="logo-text">Marwa<span>Digital</span></span>
+                </a>
+
+                <ul class="nav-links">
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#results">Results</a></li>
+                    <li><a href="#process">Process</a></li>
+                    <li><a href="#testimonials">Testimonials</a></li>
+                    <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ul>
+
+                <div class="nav-cta">
+                    <a href="#contact" class="btn-primary">Get Free Audit →</a>
+                </div>
+
+                <button class="hamburger" id="hamburger" aria-label="Open menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero" aria-label="Hero section">
+        <div class="hero-bg">
+            <div class="hero-grid"></div>
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+            <div class="hero-orb hero-orb-3"></div>
+        </div>
+
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    Award-Winning Digital Marketing Agency
+                </div>
+
+                <h1>
+                    We Turn Clicks Into<br>
+                    <span class="gradient-text">Real Business Growth</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Marwa Digital is a performance-driven digital marketing agency specializing in SEO, web design,
+                    social media strategy, and paid advertising — delivering measurable ROI for ambitious brands.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#contact" class="btn-primary">
+                        Start Growing Today
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                    <a href="#results" class="btn-outline">
+                        View Our Results
+                    </a>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number"><span class="count-up" data-target="250">0</span>+</div>
+                        <div class="stat-label">Clients Served</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number"><span class="count-up" data-target="98">0</span>%</div>
+                        <div class="stat-label">Client Retention Rate</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number"><span class="count-up" data-target="12">0</span>M+</div>
+                        <div class="stat-label">Revenue Generated</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number"><span class="count-up" data-target="8">0</span>+</div>
+                        <div class="stat-label">Years of Excellence</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Visual -->
+            <div class="hero-visual">
+                <div class="dashboard-card">
+                    <div class="dash-header">
+                        <span class="dash-title">Monthly Organic Traffic</span>
+                        <span class="dash-badge">↑ 247% Growth</span>
+                    </div>
+                    <div class="dash-metric gradient-text">84,320</div>
+                    <div class="dash-bars">
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:25%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:35%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:45%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:40%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:55%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:65%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:75%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:85%"></div>
+                        </div>
+                        <div class="dash-bar">
+                            <div class="dash-bar-fill" style="height:100%"></div>
+                        </div>
+                    </div>
+                    <div class="mini-stats">
+                        <div class="mini-stat">
+                            <div class="mini-stat-value gradient-text">3.2x</div>
+                            <div class="mini-stat-label">Avg. ROAS</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value gradient-text">94%</div>
+                            <div class="mini-stat-label">Keyword Rankings</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value gradient-text">$2.1M</div>
+                            <div class="mini-stat-label">Leads Generated</div>
+                        </div>
+                        <div class="mini-stat">
+                            <div class="mini-stat-value gradient-text">62%</div>
+                            <div class="mini-stat-label">Conversion Lift</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TRUSTED BY ===== -->
+    <section class="trusted" aria-label="Trusted by leading brands">
+        <div class="container">
+            <p class="trusted-label">Trusted by 250+ growing brands worldwide</p>
+            <div class="trusted-logos">
+                <div class="trusted-logo">Nexus Corp</div>
+                <div class="trusted-logo">Luminary</div>
+                <div class="trusted-logo">Vestige</div>
+                <div class="trusted-logo">Zephyr Tech</div>
+                <div class="trusted-logo">Arcadia</div>
+                <div class="trusted-logo">Solaris</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SERVICES ===== -->
+    <section class="services" id="services" aria-label="Our digital marketing services">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">Our Services</span>
+                <h2>Everything You Need to <span class="gradient-text">Dominate Online</span></h2>
+                <p>From SEO to paid media, we offer end-to-end digital marketing solutions tailored to your unique
+                    growth goals.</p>
+            </div>
+
+            <div class="services-grid">
+                <article class="service-card reveal reveal-delay-1">
+                    <div class="service-icon service-icon-1">🔍</div>
+                    <h3>Search Engine Optimization</h3>
+                    <p>Data-driven SEO strategies that rank your website at the top of Google. We combine technical
+                        audits, content optimization, and powerful link building to drive sustainable organic traffic
+                        that converts.</p>
+                    <a href="#contact" class="service-link">Learn More →</a>
+                </article>
+
+                <article class="service-card reveal reveal-delay-2">
+                    <div class="service-icon service-icon-2">💻</div>
+                    <h3>Web Design & Development</h3>
+                    <p>Stunning, high-converting websites built for performance. Our designs are mobile-first,
+                        SEO-optimized, and engineered to turn visitors into customers from the very first click.</p>
+                    <a href="#contact" class="service-link">Learn More →</a>
+                </article>
+
+                <article class="service-card reveal reveal-delay-3">
+                    <div class="service-icon service-icon-3">📱</div>
+                    <h3>Social Media Marketing</h3>
+                    <p>Build a powerful brand presence across Instagram, LinkedIn, TikTok, and beyond. We craft
+                        platform-specific strategies that grow your audience and drive meaningful engagement.</p>
+                    <a href="#contact" class="service-link">Learn More →</a>
+                </article>
+
+                <article class="service-card reveal reveal-delay-1">
+                    <div class="service-icon service-icon-4">📊</div>
+                    <h3>Pay-Per-Click Advertising</h3>
+                    <p>Maximize every ad dollar with precision-targeted Google, Meta, and LinkedIn campaigns. Our PPC
+                        specialists continuously optimize for lower CPCs and higher conversion rates to deliver
+                        exceptional ROAS.</p>
+                    <a href="#contact" class="service-link">Learn More →</a>
+                </article>
+
+                <article class="service-card reveal reveal-delay-2">
+                    <div class="service-icon service-icon-5">✍️</div>
+                    <h3>Content Marketing</h3>
+                    <p>Authority-building content that ranks, educates, and converts. Our team produces SEO-optimized
+                        blogs, landing pages, video scripts, and infographics tailored to your audience's search intent.
+                    </p>
+                    <a href="#contact" class="service-link">Learn More →</a>
+                </article>
+
+                <article class="service-card reveal reveal-delay-3">
+                    <div class="service-icon service-icon-6">🎯</div>
+                    <h3>Brand Strategy & Identity</h3>
+                    <p>Build a brand that resonates and endures. We develop comprehensive brand identities, messaging
+                        frameworks, and positioning strategies that differentiate you from the competition and build
+                        lasting loyalty.</p>
+                    <a href="#contact" class="service-link">Learn More →</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PROCESS ===== -->
+    <section class="process" id="process" aria-label="Our process">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">How We Work</span>
+                <h2>Our Proven <span class="gradient-text">4-Step Process</span></h2>
+                <p>A transparent, results-focused methodology designed to deliver maximum impact for your business.</p>
+            </div>
+
+            <div class="process-steps">
+                <div class="step-card reveal reveal-delay-1">
+                    <div class="step-number">01</div>
+                    <h3>Discovery & Audit</h3>
+                    <p>We deep-dive into your business, competitors, and market to uncover untapped opportunities and
+                        strategic gaps in your current digital presence.</p>
+                </div>
+                <div class="step-card reveal reveal-delay-2">
+                    <div class="step-number">02</div>
+                    <h3>Strategy & Roadmap</h3>
+                    <p>We craft a custom, data-driven marketing strategy with clear KPIs, timelines, and deliverables —
+                        all aligned to your specific business objectives.</p>
+                </div>
+                <div class="step-card reveal reveal-delay-3">
+                    <div class="step-number">03</div>
+                    <h3>Execute & Optimize</h3>
+                    <p>Our expert team executes every element with precision, continuously A/B testing and refining
+                        campaigns to maximize performance and ROI.</p>
+                </div>
+                <div class="step-card reveal reveal-delay-4">
+                    <div class="step-number">04</div>
+                    <h3>Report & Scale</h3>
+                    <p>Transparent monthly reporting with actionable insights. We identify what's working, double down
+                        on winning strategies, and scale your growth.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== RESULTS ===== -->
+    <section class="results" id="results" aria-label="Our results and case studies">
+        <div class="container">
+            <div class="results-grid">
+                <div class="results-visual reveal">
+                    <div class="results-main-card">
+                        <div class="dash-header">
+                            <span class="dash-title">SEO Performance — E-Commerce Client</span>
+                            <span class="dash-badge">12 Months</span>
+                        </div>
+                        <div class="chart-area">
+                            <svg class="chart-line" viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                                        <stop offset="0%" stop-color="#2563FF" />
+                                        <stop offset="100%" stop-color="#FC3AED" />
+                                    </linearGradient>
+                                    <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#2563FF" stop-opacity="0.3" />
+                                        <stop offset="100%" stop-color="#2563FF" stop-opacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Grid lines -->
+                                <line x1="0" y1="45" x2="400" y2="45" stroke="rgba(255,255,255,0.06)"
+                                    stroke-width="1" />
+                                <line x1="0" y1="90" x2="400" y2="90" stroke="rgba(255,255,255,0.06)"
+                                    stroke-width="1" />
+                                <line x1="0" y1="135" x2="400" y2="135" stroke="rgba(255,255,255,0.06)"
+                                    stroke-width="1" />
+                                <!-- Area fill -->
+                                <path
+                                    d="M 0 160 L 36 155 L 72 148 L 108 140 L 144 128 L 180 110 L 216 90 L 252 70 L 288 52 L 324 38 L 360 25 L 400 15 L 400 180 L 0 180 Z"
+                                    fill="url(#fillGrad)" />
+                                <!-- Main line -->
+                                <path
+                                    d="M 0 160 L 36 155 L 72 148 L 108 140 L 144 128 L 180 110 L 216 90 L 252 70 L 288 52 L 324 38 L 360 25 L 400 15"
+                                    fill="none" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <!-- Dots -->
+                                <circle cx="400" cy="15" r="5" fill="#FC3AED" />
+                                <circle cx="400" cy="15" r="9" fill="rgba(252,58,237,0.2)" />
+                            </svg>
+                        </div>
+                        <div class="mini-stats">
+                            <div class="mini-stat">
+                                <div class="mini-stat-value" style="color:#4ADE80">+347%</div>
+                                <div class="mini-stat-label">Organic Traffic</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="mini-stat-value" style="color:#4ADE80">+189%</div>
+                                <div class="mini-stat-label">Revenue Growth</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="floating-badge floating-badge-1">
+                        <span class="badge-dot" style="background:#4ADE80; box-shadow: 0 0 8px #4ADE80;"></span>
+                        <span>#1 Google Ranking Achieved</span>
+                    </div>
+                    <div class="floating-badge floating-badge-2">
+                        <span class="badge-dot" style="background:#2563FF; box-shadow: 0 0 8px #2563FF;"></span>
+                        <span>2.4M Impressions This Month</span>
+                    </div>
+                </div>
+
+                <div class="results-content reveal reveal-delay-2">
+                    <span class="section-label">Proven Results</span>
+                    <h2>Real Campaigns. <span class="gradient-text">Real Revenue.</span></h2>
+                    <p>Our track record speaks for itself. We've helped businesses across retail, SaaS, healthcare, and
+                        hospitality achieve transformative digital growth through strategic, measurable marketing
+                        campaigns.</p>
+
+                    <div class="results-items">
+                        <div class="result-item">
+                            <span class="result-item-icon">✓</span>
+                            <span>Average 247% increase in organic traffic within 6 months</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-item-icon">✓</span>
+                            <span>Google Page 1 rankings for 94% of targeted keywords</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-item-icon">✓</span>
+                            <span>3.2x average return on ad spend across all PPC campaigns</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-item-icon">✓</span>
+                            <span>62% average conversion rate improvement post-redesign</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-item-icon">✓</span>
+                            <span>$12M+ in trackable revenue generated for our clients</span>
+                        </div>
+                    </div>
+
+                    <a href="#contact" class="btn-primary">
+                        Get Your Free Audit
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TESTIMONIALS ===== -->
+    <section class="testimonials" id="testimonials" aria-label="Client testimonials">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">Client Stories</span>
+                <h2>What Our Clients <span class="gradient-text">Say About Us</span></h2>
+                <p>Don't just take our word for it. Here's what business owners and marketing leaders say about working
+                    with Marwa Digital.</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <article class="testimonial-card reveal reveal-delay-1">
+                    <div class="stars">
+                        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span
+                            class="star">★</span><span class="star">★</span>
+                    </div>
+                    <p class="testimonial-text">"Marwa Digital completely transformed our online presence. Within 5
+                        months, our organic traffic tripled and we started getting qualified leads on autopilot. Best
+                        investment we've made."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar avatar-1">SA</div>
+                        <div>
+                            <div class="author-name">Sarah Al-Hassan</div>
+                            <div class="author-title">CEO, NovaTech Solutions</div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="testimonial-card reveal reveal-delay-2">
+                    <div class="stars">
+                        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span
+                            class="star">★</span><span class="star">★</span>
+                    </div>
+                    <p class="testimonial-text">"The team at Marwa Digital are true professionals. Our Google Ads ROAS
+                        went from 1.4x to 3.8x in just 3 months. Their data-driven approach and constant communication
+                        set them apart."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar avatar-2">MK</div>
+                        <div>
+                            <div class="author-name">Mohamed Karim</div>
+                            <div class="author-title">E-Commerce Director, Luxe Brands</div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="testimonial-card reveal reveal-delay-3">
+                    <div class="stars">
+                        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span
+                            class="star">★</span><span class="star">★</span>
+                    </div>
+                    <p class="testimonial-text">"Our new website by Marwa Digital is stunning and incredibly fast.
+                        Bounce rate dropped 40% and our consultation bookings increased by 85% in the first quarter
+                        after launch."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar avatar-3">LP</div>
+                        <div>
+                            <div class="author-name">Laura Petrov</div>
+                            <div class="author-title">Founder, Wellness Collective</div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="testimonial-card reveal reveal-delay-1">
+                    <div class="stars">
+                        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span
+                            class="star">★</span><span class="star">★</span>
+                    </div>
+                    <p class="testimonial-text">"I've worked with 3 agencies before Marwa Digital and none came close to
+                        delivering these results. They're transparent, proactive, and genuinely care about your business
+                        growth."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar avatar-4">JT</div>
+                        <div>
+                            <div class="author-name">James Thornton</div>
+                            <div class="author-title">Managing Director, Apex Financial</div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="testimonial-card reveal reveal-delay-2">
+                    <div class="stars">
+                        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span
+                            class="star">★</span><span class="star">★</span>
+                    </div>
+                    <p class="testimonial-text">"Our social media growth has been phenomenal. In 6 months, our Instagram
+                        following grew from 2K to 48K with genuine, engaged followers. The content strategy is spot-on."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar avatar-5">RA</div>
+                        <div>
+                            <div class="author-name">Rina Ahmad</div>
+                            <div class="author-title">Brand Manager, Urban Threads</div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="testimonial-card reveal reveal-delay-3">
+                    <div class="stars">
+                        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span
+                            class="star">★</span><span class="star">★</span>
+                    </div>
+                    <p class="testimonial-text">"Working with Marwa Digital felt like having an in-house marketing team.
+                        They understood our niche, executed flawlessly, and delivered a 200% increase in qualified leads
+                        within the first quarter."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar avatar-6">DC</div>
+                        <div>
+                            <div class="author-name">David Chen</div>
+                            <div class="author-title">CTO, SaaS Innovate</div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PRICING ===== -->
+    <section class="pricing" id="pricing" aria-label="Pricing plans">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">Pricing</span>
+                <h2>Transparent Pricing, <span class="gradient-text">Zero Surprises</span></h2>
+                <p>Flexible plans designed to scale with your business. No hidden fees, no long-term lock-ins — just
+                    results.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Starter -->
+                <div class="pricing-card reveal reveal-delay-1">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price"><sup>$</sup>799</div>
+                    <div class="plan-period">per month</div>
+                    <div class="plan-divider"></div>
+                    <ul class="plan-features">
+                        <li><span class="check">✓</span> SEO Audit & Strategy</li>
+                        <li><span class="check">✓</span> 4 Blog Posts/Month</li>
+                        <li><span class="check">✓</span> On-Page SEO Optimization</li>
+                        <li><span class="check">✓</span> Google Analytics Setup</li>
+                        <li><span class="check">✓</span> Monthly Report</li>
+                        <li class="disabled"><span class="cross">✕</span> PPC Management</li>
+                        <li class="disabled"><span class="cross">✕</span> Social Media Management</li>
+                    </ul>
+                    <a href="#contact" class="btn-outline" style="width:100%; justify-content:center;">Get Started</a>
+                </div>
+
+                <!-- Growth (Featured) -->
+                <div class="pricing-card featured reveal reveal-delay-2">
+                    <div class="featured-tag">⭐ Most Popular</div>
+                    <div class="plan-name">Growth</div>
+                    <div class="plan-price"><sup>$</sup>1,799</div>
+                    <div class="plan-period">per month</div>
+                    <div class="plan-divider"></div>
+                    <ul class="plan-features">
+                        <li><span class="check">✓</span> Full SEO Campaign</li>
+                        <li><span class="check">✓</span> 8 Blog Posts/Month</li>
+                        <li><span class="check">✓</span> Google & Meta PPC</li>
+                        <li><span class="check">✓</span> Social Media (3 Platforms)</li>
+                        <li><span class="check">✓</span> Email Marketing</li>
+                        <li><span class="check">✓</span> Conversion Rate Optimization</li>
+                        <li><span class="check">✓</span> Bi-Weekly Strategy Calls</li>
+                    </ul>
+                    <a href="#contact" class="btn-primary" style="width:100%; justify-content:center;">Get Started →</a>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="pricing-card reveal reveal-delay-3">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price"><sup>$</sup>3,499</div>
+                    <div class="plan-period">per month</div>
+                    <div class="plan-divider"></div>
+                    <ul class="plan-features">
+                        <li><span class="check">✓</span> Everything in Growth</li>
+                        <li><span class="check">✓</span> Unlimited Content</li>
+                        <li><span class="check">✓</span> All Ad Platforms</li>
+                        <li><span class="check">✓</span> Dedicated Account Manager</li>
+                        <li><span class="check">✓</span> Custom Web Development</li>
+                        <li><span class="check">✓</span> PR & Influencer Outreach</li>
+                        <li><span class="check">✓</span> Weekly Strategy Sessions</li>
+                    </ul>
+                    <a href="#contact" class="btn-outline" style="width:100%; justify-content:center;">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FAQ ===== -->
+    <section class="faq" id="faq" aria-label="Frequently asked questions">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-label">FAQ</span>
+                <h2>Frequently Asked <span class="gradient-text">Questions</span></h2>
+                <p>Everything you need to know about working with Marwa Digital.</p>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        How long does it take to see SEO results?
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            SEO is a long-term investment. Most clients begin seeing meaningful improvements in rankings
+                            and traffic within 3–4 months. Significant, compounding results typically emerge between
+                            months 6–12. We set realistic expectations upfront and provide transparent monthly reporting
+                            so you can track progress every step of the way.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        Do you work with businesses of all sizes?
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            Absolutely. We work with startups, small businesses, and large enterprises across multiple
+                            industries. Our Starter plan is perfect for growing businesses, while our Enterprise plan is
+                            tailored for established brands seeking aggressive scale. Every strategy is custom-built for
+                            your specific stage and goals.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        What makes Marwa Digital different from other agencies?
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            We're obsessed with measurable outcomes, not vanity metrics. Every strategy we implement is
+                            tied to your business objectives — whether that's revenue, leads, or brand awareness. We
+                            combine deep industry expertise with cutting-edge tools, radical transparency, and a genuine
+                            passion for helping our clients succeed.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        Is there a minimum contract length?
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            We recommend a minimum 3-month commitment for digital marketing services, as this is the
+                            time required to implement strategy, gather data, and begin optimizing for results. However,
+                            we don't believe in locking clients in against their will — we earn your continued business
+                            through exceptional results.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        How do you measure and report on success?
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            You'll receive comprehensive monthly reports covering all agreed KPIs — organic traffic,
+                            keyword rankings, lead volume, conversion rates, ROAS, and more. We also set up a live
+                            dashboard you can access anytime. For Growth and Enterprise clients, we hold regular
+                            strategy calls to discuss performance and next steps.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item reveal">
+                    <div class="faq-question">
+                        Can I start with a free audit?
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-inner">
+                            Yes! We offer a comprehensive free digital marketing audit for all new inquiries. This
+                            includes an SEO health check, website performance analysis, competitor research, and a
+                            customized growth roadmap — all at no cost and with zero obligation. Simply fill out the
+                            contact form below to get started.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CTA SECTION ===== -->
+    <section class="cta-section" id="contact" aria-label="Get started with Marwa Digital">
+        <div class="container">
+            <div class="cta-box reveal">
+                <span class="section-label" style="justify-content:center;">Get Started Today</span>
+                <h2>Ready to <span class="gradient-text">Grow Your Business</span>?</h2>
+                <p>Book your free digital marketing audit today. No commitment, no pressure — just a clear roadmap to
+                    your business growth.</p>
+                <div class="cta-actions">
+                    <a href="mailto:hello@marwadigital.com" class="btn-primary">
+                        Get My Free Audit
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                    <a href="tel:+1234567890" class="btn-outline">
+                        📞 Book a Call
+                    </a>
+                </div>
+                <p class="cta-note">✓ Free audit &nbsp; ✓ No commitment &nbsp; ✓ Response within 24 hours</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer role="contentinfo">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <div class="logo-icon">M</div>
+                        <span class="logo-text">Marwa<span>Digital</span></span>
+                    </a>
+                    <p class="footer-desc">
+                        Marwa Digital is a performance-driven digital marketing agency helping ambitious brands grow
+                        through data-driven SEO, paid media, web design, and content strategy.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="LinkedIn">in</a>
+                        <a href="#" class="social-link" aria-label="Twitter">𝕏</a>
+                        <a href="#" class="social-link" aria-label="Instagram">ig</a>
+                        <a href="#" class="social-link" aria-label="Facebook">f</a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Services</h4>
+                    <ul class="footer-links">
+                        <li><a href="#services">Search Engine Optimization</a></li>
+                        <li><a href="#services">Web Design & Development</a></li>
+                        <li><a href="#services">Social Media Marketing</a></li>
+                        <li><a href="#services">Pay-Per-Click Advertising</a></li>
+                        <li><a href="#services">Content Marketing</a></li>
+                        <li><a href="#services">Brand Strategy</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Our Work</a></li>
+                        <li><a href="#">Case Studies</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li><a href="mailto:hello@marwadigital.com">hello@marwadigital.com</a></li>
+                        <li><a href="tel:+1234567890">+1 (234) 567-890</a></li>
+                        <li><a href="#">Schedule a Call</a></li>
+                        <li><a href="#">Free Audit</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="footer-bottom-text">© 2025 Marwa Digital. All rights reserved.</p>
+                <div class="footer-bottom-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ===== NAVBAR SCROLL =====
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ===== HAMBURGER MENU =====
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileClose = document.getElementById('mobileClose');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        mobileClose.addEventListener('click', closeMobileMenu);
+
+        function closeMobileMenu() {
+            mobileMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        // ===== SCROLL REVEAL =====
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.12 });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // ===== COUNT UP ANIMATION =====
+        function animateCountUp(el) {
+            const target = parseInt(el.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                el.textContent = Math.floor(current);
+            }, 16);
+        }
+
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCountUp(entry.target);
+                    counterObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.count-up').forEach(el => counterObserver.observe(el));
+
+        // ===== FAQ ACCORDION =====
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                const isOpen = item.classList.contains('open');
+
+                // Close all
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+
+                // Open clicked if it was closed
+                if (!isOpen) item.classList.add('open');
+            });
+        });
+
+        // ===== SMOOTH SCROLL =====
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', (e) => {
+                const target = document.querySelector(anchor.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    const offset = 80;
+                    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                }
+            });
+        });
+
+        // ===== CURSOR GLOW EFFECT =====
+        const glow = document.createElement('div');
+        glow.style.cssText = `
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37,99,255,0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s;
+        `;
+        document.body.appendChild(glow);
+
+        document.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+
+</html>

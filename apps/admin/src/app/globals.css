@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+/* Switches Tailwind's `dark:` variant from the default
+   prefers-color-scheme media query to a `.dark` class/ancestor selector, so
+   next-themes (attribute="class", see ThemeProvider.tsx) can drive it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Brand palette ────────────────────────────────────────────────────────
+   Base / Background ...... Deep Obsidian  #09090B (dark) / Slate 50 (light)
+   Elevated Surface ....... Obsidian Card  #121215 (dark) / White (light)
+   Text / Contrast ........ Bright White   #FFFFFF (dark) / Slate 900 (light)
+   Primary Accent ......... Electric Indigo #6366F1
+   Secondary Accent ....... Subtle Cyan     #06B6D4
+   Accent Gradient ........ #6366F1 -> #06B6D4 */
+
+:root {
+  --surface: #121215;
+  --accent-strong: #4f46e5;
+  --accent-secondary: #06b6d4;
+  --accent-gradient: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%);
+}
+
+/* Semantic light/dark tokens (shadcn-style HSL triplets, consumed as
+   `hsl(var(--token))`) — the pairing next-themes' `.dark` class switches
+   between. Existing screens are still hand-painted through the amber/zinc
+   `@theme` remaps below and won't repaint on toggle; these tokens are what
+   new/refactored components should build on to be theme-aware. */
+@layer base {
+  :root {
+    --background: 210 40% 98%; /* Slate 50 */
+    --foreground: 222 47% 11%; /* Slate 900 */
+    --card: 0 0% 100%; /* Pure White */
+    --card-foreground: 222 47% 11%;
+    --muted: 210 40% 96.1%; /* Slate 100 */
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --border: 214.3 31.8% 91.4%; /* Crisp light border */
+    --accent: 239 84% 67%; /* Indigo 500 */
+    --accent-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%; /* Obsidian Dark */
+    --foreground: 0 0% 98%; /* Bright White */
+    --card: 240 10% 6%; /* Dark Card Surface */
+    --card-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --border: 240 3.7% 15.9%; /* Subtle dark border */
+    --accent: 239 84% 67%;
+    --accent-foreground: 0 0% 100%;
+  }
+}
+
+/* The admin's accent is written throughout as Tailwind's `amber-*` utilities
+   (~600 usages: `bg-amber-400`, `text-amber-400`, `focus:border-amber-400`…).
+   Rather than rewrite every class name — and risk missing some — the amber
+   ramp itself is redefined here to the Electric Indigo brand scale (these
+   are Tailwind's real indigo-* hex values), so every existing utility
+   repaints at once and any new `amber-*` class an editor adds stays
+   on-brand automatically. Read "amber" as "brand accent". */
+/* Same technique for the admin's neutral chrome, which is written as
+   `zinc-*` (bg-zinc-950 shell, bg-zinc-900 cards, border-zinc-800 rules,
+   text-zinc-400 secondary copy). zinc-950/zinc-900 are pinned to the exact
+   obsidian background/card-surface hexes below (#09090B / #121215); the rest
+   of the ramp is Tailwind's real slate-* scale for a crisp, modern neutral
+   feel instead of the old navy tint. zinc-50 is the light-mode surface. */
+@theme {
+  --color-zinc-50: #f8fafc;
+  --color-zinc-100: #f1f5f9;
+  --color-zinc-200: #e2e8f0;
+  --color-zinc-300: #cbd5e1;
+  --color-zinc-400: #94a3b8;
+  --color-zinc-500: #64748b;
+  --color-zinc-600: #475569;
+  --color-zinc-700: #334155;
+  --color-zinc-800: #1e293b;
+  --color-zinc-900: #121215;
+  --color-zinc-950: #09090b;
+}
+
+@theme {
+  --color-amber-50: #eef2ff;
+  --color-amber-100: #e0e7ff;
+  --color-amber-200: #c7d2fe;
+  --color-amber-300: #a5b4fc;
+  --color-amber-400: #818cf8;
+  --color-amber-500: #6366f1;
+  --color-amber-600: #4f46e5;
+  --color-amber-700: #4338ca;
+  --color-amber-800: #3730a3;
+  --color-amber-900: #312e81;
+  --color-amber-950: #1e1b4b;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-surface: var(--surface);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-secondary: var(--accent-secondary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* The admin shell (DashboardShell) paints its own zinc-950 background over
+   this, so body's color here is mostly a fallback — kept in sync with the
+   semantic tokens rather than the old flat hex values. */
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── Design-system utilities ─────────────────────────────────────────────
+   Reusable glassmorphism primitives for the Linear/Vercel-style surfaces —
+   compose these instead of repeating the underlying utility strings. */
+@utility glass-card {
+  background-color: rgb(24 24 27 / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.3),
+    0 8px 10px -6px rgb(0 0 0 / 0.3);
+}
+
+@utility glass-pill {
+  background-color: rgb(24 24 27 / 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 9999px;
+}
+
+/* Backdrop-blurred scrim + entry animation for modal popups (see
+   RevisionHistoryModal, WorkflowTemplatePickerModal, ConfirmDeleteModal,
+   etc.) — apply `modal-overlay` to the fixed-inset click-catcher div and
+   `modal-panel-enter` to the panel itself. */
+@utility modal-overlay {
+  background-color: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: modal-fade-in 150ms ease-out;
+}
+
+@utility modal-panel-enter {
+  animation: modal-panel-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@utility hover-glow {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    border-color: rgb(99 102 241 / 0.5);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+  }
+}
+
+/* Soft glow ring around the active sidebar item — reads the same
+   `--brand` custom property the active background uses, so a white-labeled
+   workspace's own accent color glows too, not just the default indigo. */
+@utility nav-active-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--brand) 40%, transparent),
+    0 0 16px -2px color-mix(in srgb, var(--brand) 60%, transparent);
+}
+
+/* Hide scrollbars for Chrome, Safari, Opera, IE, Edge, Firefox globally in builder */
+html,
+body,
+.canvas-container,
+iframe,
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.canvas-container::-webkit-scrollbar,
+iframe::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+
+/* Thin, dark, rounded scrollbars everywhere else in the admin */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #52525b transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #52525b;
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #71717a;
+}
+
+/* Minimal styling for the Pages rich text editor content, since no
+   typography plugin is installed. */
+.tiptap-content h1 { font-size: 1.5rem; font-weight: 700; margin: 0.75rem 0; }
+.tiptap-content h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0; }
+.tiptap-content h3 { font-size: 1.1rem; font-weight: 600; margin: 0.5rem 0; }
+.tiptap-content p { margin: 0.5rem 0; }
+.tiptap-content ul { list-style: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+.tiptap-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+.tiptap-content blockquote { border-left: 3px solid #52525b; padding-left: 0.75rem; color: #a1a1aa; margin: 0.5rem 0; }
+.tiptap-content a { color: hsl(var(--accent)); text-decoration: underline; }
+/* Was missing entirely — an inserted image rendered at its native upload
+   resolution, uncapped, inside this narrow property-panel column. Also
+   matches apps/web's own .tiptap-content img rule so the editor preview
+   isn't misleading about how the image will actually look live.
+   vertical-align keeps small inline icons (e.g. star ratings) level with
+   the surrounding text baseline instead of sitting a few px low. */
+.tiptap-content img { max-width: 100%; height: auto; border-radius: 0.5rem; vertical-align: middle; }
+
+/* Global dark mode select & option dropdown styling */
+select option {
+  background-color: #121215 !important;
+  color: #f4f4f5 !important;
+}
+
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked {
+  background-color: #1e1b4b !important;
+  color: hsl(var(--accent)) !important;
+}

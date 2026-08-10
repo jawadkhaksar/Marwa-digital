@@ -1,0 +1,49 @@
+{
+  "name": "@marwa/admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@marwa/builder": "*",
+    "@tiptap/extension-image": "^3.27.3",
+    "@tiptap/extension-link": "^3.27.2",
+    "@tiptap/extension-text-align": "^3.27.2",
+    "@tiptap/extension-text-style": "^3.27.3",
+    "@tiptap/extension-underline": "^3.27.2",
+    "@tiptap/react": "^3.27.2",
+    "@tiptap/starter-kit": "^3.27.2",
+    "@xyflow/react": "^12.11.2",
+    "lucide-react": "^0.475.0",
+    "next": "16.2.10",
+    "next-themes": "^0.4.6",
+    "react": "19.2.4",
+    "react-colorful": "^5.7.0",
+    "react-dom": "19.2.4",
+    "react-icons": "^5.7.0",
+    "recharts": "^3.10.1",
+    "rrweb-player": "^2.1.1",
+    "svelte": "^5.56.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/google.maps": "^3.65.2",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "otplib": "^13.4.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

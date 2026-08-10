@@ -1,0 +1,446 @@
+@import "tailwindcss";
+
+/* next-themes uses attribute="class" (html.light / html.dark) — tell
+   Tailwind's `dark:` variant to key off that class instead of the OS-level
+   `prefers-color-scheme` media query it uses by default. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Brand palette ────────────────────────────────────────────────────────
+   Base / Background ...... Deep Navy      #080B1F
+   Text / Contrast ........ Pure White     #FFFFFF
+   Primary Accent ......... Electric Blue  #2563FF
+   Secondary Accent ....... Purple         #7C3AED
+   Surface / Cards ........ Off-White      #F4F6FA
+   Accent Gradient ........ #2563FF -> #FC3AED
+
+   `--gold`/`--gold-dark` keep their historical NAMES (they're baked into
+   ~600 Tailwind utility usages as `text-gold`, `bg-gold`, `border-gold`, and
+   into saved page layouts) but now carry the Electric Blue primary accent.
+   Treat them as "primary accent", not as a color word. */
+
+:root,
+.dark {
+  --background: #080b1f;
+  --foreground: #ffffff;
+  --surface: #101534;
+
+  --gold: #2563ff;
+  --gold-dark: #1d4fd8;
+  --accent: #2563ff;
+  --accent-strong: #1d4fd8;
+  --accent-secondary: #7c3aed;
+  --accent-gradient: linear-gradient(90deg, #2563ff 0%, #fc3aed 100%);
+
+  --ink: #060818;
+  --ink-panel: #101534;
+  --ink-border: rgba(255, 255, 255, 0.1);
+  --ink-muted: rgba(255, 255, 255, 0.65);
+  --faq-bg: #131a3d;
+  --input-bg: #1a2149;
+
+  /* Override Tailwind's default backdrop-blur-md token (12px) — used by
+     .backdrop-blur-md throughout (e.g. SiteHeader, TimePicker, DatePicker). */
+  --blur-md: 6px;
+}
+
+/* Light theme — the off-white brand surface as the page ground, white cards,
+   deep-navy typography. The accents are identical in both themes on purpose. */
+.light {
+  --background: #f4f6fa;
+  --foreground: #080b1f;
+  --surface: #ffffff;
+
+  --gold: #2563ff;
+  --gold-dark: #1d4fd8;
+  --accent: #2563ff;
+  --accent-strong: #1d4fd8;
+  --accent-secondary: #7c3aed;
+  --accent-gradient: linear-gradient(90deg, #2563ff 0%, #fc3aed 100%);
+
+  --ink: #ffffff;
+  --ink-panel: #f4f6fa;
+  --ink-border: rgba(8, 11, 31, 0.1);
+  --ink-muted: rgba(8, 11, 31, 0.6);
+  --faq-bg: #f4f6fa;
+  --input-bg: #ffffff;
+
+  --blur-md: 6px;
+}
+
+.rounded-2xl.border.border-white\/10.bg-white\/5.px-4.py-3.backdrop-blur-md,
+button.rounded-xl.border.border-dashed.border-white\/15.py-2\.5.text-sm.font-semibold.text-foreground\/60.transition-colors.hover\:border-gold\/50.hover\:text-gold,
+button.flex-1.rounded-lg.px-3.py-2\.5.text-sm.font-semibold.tracking-wide.transition-colors.text-foreground\/50.hover\:text-foreground\/80 {
+  background: #605F5F80;
+}
+
+/* See apps/web/.../CustomCursor.tsx (which never activates this class when
+   embedded in the admin builder's preview iframe, so the real cursor stays
+   available for the block hover/select toolbar there). */
+html.custom-cursor-active * {
+  cursor: none !important;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-gold: var(--gold);
+  --color-gold-dark: var(--gold-dark);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-ink: var(--ink);
+  --color-ink-panel: var(--ink-panel);
+  --color-ink-border: var(--ink-border);
+  --color-ink-muted: var(--ink-muted);
+  --color-faq-bg: var(--faq-bg);
+  --color-input-bg: var(--input-bg);
+  --font-sans: var(--font-outfit);
+}
+
+/* A single element wider than the viewport (a stray negative margin, a
+   fixed px width, a `100vw` that ignores the vertical scrollbar's own
+   width) anywhere on the page pushes html/body's scrollWidth past 100%,
+   which the browser then exposes as a page-level horizontal scrollbar even
+   though no single visible section looks broken — clamping the two root
+   elements is the actual fix, not chasing whichever child happens to be the
+   overflow source today. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-outfit), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Utilities for Glowing Animated Button */
+@layer utilities {
+  .glow-btn {
+    position: relative;
+    overflow: hidden;
+    color: black !important;
+    background: transparent !important;
+    z-index: 1;
+    border: none;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  div#booking {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .glow-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .glow-btn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    aspect-ratio: 1/1;
+    width: 200%;
+    height: auto;
+    border-radius: 50%;
+    background: conic-gradient(var(--gold) 0%, transparent 15%, transparent 35%, var(--gold) 50%, transparent 65%, transparent 85%, var(--gold) 100%);
+    animation: spin-gradient 3s linear infinite;
+    transform: translate(-50%, -50%);
+    z-index: -2;
+  }
+
+  .glow-btn::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    background: var(--accent);
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  /* Brand gradient, for headings/CTAs that want the full accent sweep. */
+  .brand-gradient {
+    background: var(--accent-gradient);
+  }
+
+  .brand-gradient-text {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@keyframes spin-gradient {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee-scroll 22s linear infinite;
+}
+
+/* Soft "breathing" glow on a card's border — used for trust-badge panels
+   (e.g. BookingSummarySidebar's included-items card) to draw the eye
+   without being as loud as .glow-btn's spinning conic-gradient. */
+@keyframes card-glow {
+  0%, 100% {
+    box-shadow: 0 0 0px 0px rgba(37, 99, 255, 0.25);
+    border-color: rgba(37, 99, 255, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 20px 3px rgba(37, 99, 255, 0.35);
+    border-color: rgba(37, 99, 255, 0.7);
+  }
+}
+
+/* Rendering for admin-authored CMS page content (see /[...slug], CLASSIC mode). */
+.tiptap-content h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+.tiptap-content h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+.tiptap-content h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0.75rem 0;
+}
+
+.tiptap-content p {
+  margin: var(--rt-p-gap, 0.75rem) 0;
+}
+
+.tiptap-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.75rem 0;
+  /* Keeps small inline icons (e.g. a row of star-rating images typed
+     mid-sentence) level with the surrounding text baseline instead of
+     sitting a few px low — img is inline by default, but its baseline
+     alignment looks off without this. The actual vertical-stacking bug
+     (images landing on their own line) was TipTap's Image extension
+     defaulting to a block-level node, fixed at the editor config in
+     apps/admin/src/components/RichTextEditor.tsx, not here. */
+  vertical-align: middle;
+}
+
+/* Builder RichText block's "Drop Cap" toggle — see apps/web/.../blockComponents.tsx. */
+.tiptap-content.drop-cap p:first-of-type::first-letter {
+  float: left;
+  font-size: 3.2em;
+  line-height: 0.85;
+  font-weight: 700;
+  padding-right: 0.3rem;
+  padding-top: 0.05em;
+}
+
+.tiptap-content ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.tiptap-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.tiptap-content blockquote {
+  border-left: 3px solid var(--gold);
+  padding-left: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.tiptap-content a {
+  color: var(--rt-link-color, var(--gold));
+  text-decoration: underline;
+}
+
+.tiptap-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.tiptap-content th,
+.tiptap-content td {
+  border: 1px solid var(--ink-border);
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+}
+
+.tiptap-content tr:first-child {
+  background: var(--ink-panel);
+}
+
+/* Google Website Translator (see components/GoogleTranslate.tsx) drives the
+   De/En switcher in SiteHeader. Hide its default banner/UI chrome — we only
+   want the translation behavior, not Google's widget UI. */
+iframe.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-te-gadget-icon {
+  display: none !important;
+}
+
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Builder empty-container dropzone (see EmptyContainerDropzone.tsx) — invisible
+   by default so a real visitor to a page with a genuinely empty section sees
+   nothing. PreviewBridge.tsx, which only ever mounts inside the admin
+   builder's iframe, injects the override `<style>` that actually makes this
+   visible; nothing here reaches a live page render on its own. */
+.exr-empty-dropzone,
+.exr-canvas-add-banner {
+  display: none;
+  user-select: none;
+}
+
+/* For horizontally-scrollable card rows that already have their own visible
+   prev/next controls (e.g. FeaturedRoutesCarouselBlock) — the native
+   scrollbar is redundant clutter under the cards once dedicated arrow
+   buttons exist, and scrolling by touch/trackpad still works identically
+   with it hidden. */
+/* Hide scrollbars for Chrome, Safari, Opera, IE, Edge, Firefox */
+html,
+body,
+.exr-no-scrollbar,
+.canvas-container,
+iframe,
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.exr-no-scrollbar::-webkit-scrollbar,
+.canvas-container::-webkit-scrollbar,
+iframe::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+
+
+/* IconList block: an item's `text` field supports HTML (see
+   dangerouslySetInnerHTML in blockComponents.tsx's IconList), so a "Label:"
+   line followed by one or more <a href="mailto:...">/<a href="tel:...">
+   value lines is a supported, common pattern (e.g. a contact-info block
+   grouping several emails under one icon). Values read as bold+underlined
+   so they're visually distinct from the plain label above them, matching
+   how Faq's answer links already get [&_a]:underline treatment.
+   `color: inherit` — this intentionally does NOT introduce a new fixed
+   link color; it follows whatever the block's own Text Color style field
+   is already set to. */
+.iconlist-text a {
+  font-weight: 700;
+  text-decoration: underline;
+  color: inherit;
+}
+
+/* DefinitionRows block (see DefinitionRowsBlock.tsx): `content`/`intro`/
+   `footerNote` accept raw HTML, including a full <table> for a row like
+   "Legal Basis for Processing" — the shared RichTextEditor's tiptap
+   instance has no table extension, so an admin pastes table markup
+   directly rather than building it through a WYSIWYG control. Styling
+   mirrors the CMS page renderer's `.tiptap-content` table/list rules
+   above so both surfaces read consistently. */
+.definition-rows-content,
+.definition-rows-content a {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.definition-rows-content a {
+  color: var(--gold);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.definition-rows-content p {
+  margin: 0 0 0.75rem;
+}
+
+.definition-rows-content p:last-child {
+  margin-bottom: 0;
+}
+
+.definition-rows-content ul,
+.definition-rows-content ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+
+.definition-rows-content ul {
+  list-style: disc;
+}
+
+.definition-rows-content ol {
+  list-style: decimal;
+}
+
+.definition-rows-content table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.9em;
+}
+
+.definition-rows-content th,
+.definition-rows-content td {
+  border: 1px solid var(--ink-border);
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+}
+
+.definition-rows-content tr:first-child {
+  background: var(--ink-panel);
+}
