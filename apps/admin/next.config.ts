@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
-const webUrl = process.env.WEB_URL ?? "http://localhost:3000";
+// NEXT_PUBLIC_WEB_URL is what every component in this app already reads to
+// build preview/"View Live" links, so it's accepted here too — the CSP
+// below has to allowlist exactly the origin those components frame, and
+// requiring a second, separately-set WEB_URL to stay in sync with it was a
+// silent footgun (the builder canvas just renders blank when they differ).
+const webUrl = process.env.WEB_URL ?? process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3000";
 
 // Dev-mode Next/React needs eval() for Fast Refresh and error-overlay stack
 // reconstruction — never needed (or included) in a production build.
@@ -18,7 +23,12 @@ const CSP = [
   // inside the embedded live-preview iframe, whose script loads are still
   // subject to this parent frame's policy in some Chrome-reported cases.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://maps.googleapis.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://www.gstatic.com`,
-  "style-src 'self' 'unsafe-inline' https://www.gstatic.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
+  // The builder's Typography controls preview real Google Fonts (Poppins,
+  // Inter, …) on the canvas — without an explicit font-src these fall back
+  // to `default-src 'self'` and every webfont request is blocked, so the
+  // font picker silently previews nothing.
+  "font-src 'self' https://fonts.gstatic.com data:",
   // Admins paste external image URLs (OG banners, gallery) and view
   // uploads served cross-origin from the API (plain http:// in local dev,
   // which the bare `https:` wildcard alone doesn't match) — both need to render.
