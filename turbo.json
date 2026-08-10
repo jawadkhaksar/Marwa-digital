@@ -1,9 +1,19 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NODE_ENV", "VERCEL", "VERCEL_ENV", "VERCEL_URL", "VERCEL_PROJECT_PRODUCTION_URL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "//": "Turborepo runs tasks in a scrubbed environment — anything not listed here is stripped before the build sees it, silently. These are read at BUILD time (baked into Next's output or its security headers), so a missing one doesn't error, it just produces a deployment quietly configured for localhost. Runtime-only secrets (DATABASE_URL, JWT_SECRET, SMTP_*, …) are deliberately absent: they're read per-request by the API, never at build time.",
+      "env": [
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_WEB_URL",
+        "NEXT_PUBLIC_ADMIN_URL",
+        "WEB_URL",
+        "ADMIN_URL",
+        "REVALIDATE_SECRET"
+      ]
     },
     "dev": {
       "cache": false,

@@ -5,6 +5,10 @@
 // Idempotent: a page whose slug already exists is updated in place rather
 // than duplicated, so this can be re-run after editing any page module.
 import { homeMeta, homeLayout } from "./pages/home.mjs";
+import { aboutMeta, aboutLayout } from "./pages/about.mjs";
+import { servicesMeta, servicesLayout } from "./pages/services.mjs";
+import { caseStudiesMeta, caseStudiesLayout } from "./pages/caseStudies.mjs";
+import { contactMeta, contactLayout } from "./pages/contact.mjs";
 import type { LayoutDocument } from "@marwa/builder";
 
 interface PageSpec {
@@ -69,7 +73,13 @@ async function upsert(token: string, spec: PageSpec): Promise<void> {
   console.log(`${existing ? "updated" : "created"}  /${spec.slug}  (${node} sections)`);
 }
 
-const SPECS: PageSpec[] = [{ ...homeMeta, layout: homeLayout() }];
+const SPECS: PageSpec[] = [
+  { ...homeMeta, layout: homeLayout() },
+  { ...aboutMeta, layout: aboutLayout() },
+  { ...servicesMeta, layout: servicesLayout() },
+  { ...caseStudiesMeta, layout: caseStudiesLayout() },
+  { ...contactMeta, layout: contactLayout() },
+];
 
 async function main() {
   const token = await login();
