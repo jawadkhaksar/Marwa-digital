@@ -1,4 +1,4 @@
-import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, counter, image, doc, n, reveal } from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, card, cols, doc, eyebrow, h, image, n, p, pill, reveal, row, section, splitHeading, stackedImages, statTile } from "../kit.mjs";
 
 export const caseStudiesMeta = {
   slug: "case-studies",

@@ -1,4 +1,4 @@
-import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, iconBox, doc, n, reveal, spacer } from "../kit.mjs";
+import { GLOW, T, advHeading, card, cols, doc, glowCard, h, n, p, pill, reveal, section, spacer, splitHeading } from "../kit.mjs";
 
 export const contactMeta = {
   slug: "contact",

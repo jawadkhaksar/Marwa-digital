@@ -76,7 +76,7 @@ function RecordingsContent() {
       })
       .then(setResult)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load recordings"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [page, search, minDuration, maxDuration, rageClicks, pagePath, startDate, endDate]);
 
   useEffect(load, [load]);

@@ -141,7 +141,7 @@ function AnalyticsTrackerInner({ cookieDays, excludeAdminTraffic, recordingEnabl
 
     lastViewAtRef.current = now;
     prevPathRef.current = `${window.location.origin}${path}`;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [pathname, searchParams]);
 
   // Last page of the visit never gets a "next navigation" to report its
@@ -194,7 +194,7 @@ function AnalyticsTrackerInner({ cookieDays, excludeAdminTraffic, recordingEnabl
       stop?.();
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [recordingEnabled]);
 
   // Click/Scroll Heatmaps — every click's position relative to the viewport
@@ -213,7 +213,7 @@ function AnalyticsTrackerInner({ cookieDays, excludeAdminTraffic, recordingEnabl
       document.removeEventListener("click", onClick);
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   return null;

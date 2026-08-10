@@ -1,4 +1,4 @@
-import { T, IMG, GLOW, pill, splitHeading, advHeading, glowCard, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, doc, n, reveal } from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, cols, doc, eyebrow, glowCard, h, n, p, pill, reveal, section, splitHeading } from "../kit.mjs";
 
 export const blogMeta = {
   slug: "insights",

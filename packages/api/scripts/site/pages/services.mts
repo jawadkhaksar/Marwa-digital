@@ -1,4 +1,4 @@
-import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, counter, image, doc, n, reveal } from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, card, cols, counter, doc, eyebrow, glowCard, h, image, marquee, n, p, pill, reveal, row, section, splitHeading, stackedImages } from "../kit.mjs";
 
 export const servicesMeta = {
   slug: "services",

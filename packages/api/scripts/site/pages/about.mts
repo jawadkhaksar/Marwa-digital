@@ -1,7 +1,4 @@
-import {
-  T, IMG, GLOW, section, cols, h, p, eyebrow, button, image, doc, n, reveal, spacer,
-  pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row,
-} from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, cols, doc, eyebrow, glowCard, image, marquee, n, p, pill, quote, row, section, spacer, splitHeading, stackedImages, statTile, statement, step } from "../kit.mjs";
 
 export const aboutMeta = {
   slug: "about",

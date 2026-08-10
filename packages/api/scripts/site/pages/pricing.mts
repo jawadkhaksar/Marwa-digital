@@ -1,4 +1,4 @@
-import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, doc, n, reveal } from "../kit.mjs";
+import { GLOW, T, advHeading, button, card, cols, doc, eyebrow, glowCard, h, n, p, pill, reveal, section, splitHeading } from "../kit.mjs";
 
 export const pricingMeta = {
   slug: "pricing",
