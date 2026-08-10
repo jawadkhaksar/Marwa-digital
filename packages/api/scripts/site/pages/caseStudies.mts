@@ -1,4 +1,4 @@
-import { T, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, counter, image, doc, n, reveal } from "../kit.mjs";
+import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, counter, image, doc, n, reveal } from "../kit.mjs";
 
 export const caseStudiesMeta = {
   slug: "case-studies",
@@ -52,18 +52,26 @@ export function caseStudiesLayout() {
   return doc([
     section(
       [
-        eyebrow("Case studies"),
-        h("Work we can point to numbers for", "h1", { align: "center" }),
-        p(
-          "Every project below shipped, launched and moved a metric the client cared about. Where we can share figures, we have — where a client asked us not to, we've said so.",
-          { align: "center", fontSize: "1.12rem", maxWidth: "760px" }
+        cols(
+          [
+            n("Section", { layoutMode: "flex", direction: "column", gap: "22px", contentWidth: "full", background: "transparent", justifyContent: "center", alignItems: "flex-start" }, {
+              children: [
+                pill("Case studies"),
+                splitHeading("Work we can point to", " numbers for.", "left", "h1"),
+                p("Every project below shipped, launched and moved a metric the client cared about. Where we can share figures, we have — where a client asked us not to, we've said so.", { fontSize: "1.12rem", maxWidth: "540px" }),
+                row([button("Start a project", "/contact"), button("See services", "/services", "ghost")]),
+              ],
+            }),
+            stackedImages([IMG.analytics, IMG.workspace, IMG.meeting]),
+          ],
+          { count: 2, ratio: "66-33", gap: "56px", align: "center" }
         ),
       ],
-      { backgroundImage: IMG.analytics, overlay: "rgba(8,11,31,0.87)", padY: "132px", align: "center", style: { textAlign: "center" } }
+      { padY: "124px", background: GLOW.topRight, style: { minHeight: "72vh", justifyContent: "center" } }
     ),
 
     section(
-      [cols([counter("312%", "Best organic growth"), counter("41%", "Best conversion lift"), counter("2.1x", "Average pipeline increase"), counter("120+", "Projects delivered")], { count: 4, gap: "20px" })],
+      [cols([statTile("312%", "Best organic growth"), statTile("41%", "Best conversion lift"), statTile("2.1x", "Average pipeline increase"), statTile("120+", "Projects delivered")], { count: 4, gap: "20px" })],
       { background: T.bgAlt, padY: "76px" }
     ),
 
@@ -141,7 +149,7 @@ export function caseStudiesLayout() {
 
     section(
       [
-        sectionIntro("The pattern", "What the successful projects have in common"),
+        advHeading("The pattern", "What the successful projects have in common", "center"),
         cols(
           [
             card([h("Strategy before pixels", "h3"), p("Every result above started with research that changed the brief. The projects that skip discovery are the ones that ship on time and change nothing.")]),
@@ -156,7 +164,7 @@ export function caseStudiesLayout() {
 
     section(
       [
-        sectionIntro("Client stories", "In their words"),
+        advHeading("Client stories", "In their words", "center"),
         cols(
           [
             card([p("“They rebuilt our site in ten weeks and it immediately outperformed the version we'd spent a year on.”"), h("Sarah Whitfield — VP Marketing, Northwind", "h4", { color: T.accent })]),
@@ -182,9 +190,9 @@ export function caseStudiesLayout() {
       {
         align: "center",
         padY: "116px",
+        background: GLOW.dual,
         style: {
           textAlign: "center",
-          background: "linear-gradient(135deg, rgba(37,99,255,0.20) 0%, rgba(124,58,237,0.20) 100%)",
           borderStyle: "solid",
           borderWidth: "1px",
           borderColor: "rgba(255,255,255,0.10)",

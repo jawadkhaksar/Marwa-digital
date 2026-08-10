@@ -1,4 +1,4 @@
-import { T, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, doc, n, reveal } from "../kit.mjs";
+import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, doc, n, reveal } from "../kit.mjs";
 
 export const pricingMeta = {
   slug: "pricing",
@@ -36,19 +36,16 @@ export function pricingLayout() {
   return doc([
     section(
       [
-        eyebrow("Pricing"),
-        h("Published prices, because guessing wastes everyone's time", "h1", { align: "center" }),
-        p(
-          "Most agencies hide pricing until you're deep in a sales process. These are the ranges our work actually lands in — so you can decide whether to keep reading.",
-          { align: "center", fontSize: "1.12rem", maxWidth: "760px" }
-        ),
+        pill("Pricing"),
+        splitHeading("Published prices, because guessing", " wastes everyone's time.", "center", "h1"),
+        p("Most agencies hide pricing until you're deep in a sales process. These are the ranges our work actually lands in — so you can decide whether to keep reading.", { align: "center", fontSize: "1.1rem", maxWidth: "720px", marginLeft: "auto", marginRight: "auto" }),
       ],
-      { backgroundImage: IMG.strategy, overlay: "rgba(8,11,31,0.87)", padY: "128px", align: "center", style: { textAlign: "center" } }
+      { padY: "116px", align: "center", background: GLOW.topRight, style: { textAlign: "center" } }
     ),
 
     section(
       [
-        sectionIntro("Project work", "Fixed scope, fixed price"),
+        advHeading("Project work", "Fixed scope, fixed price", "center"),
         cols(
           [
             tier("Launch", "$12k – $20k", "A focused marketing site for founders and small teams who need to look credible and convert.", [
@@ -84,7 +81,7 @@ export function pricingLayout() {
 
     section(
       [
-        sectionIntro("Ongoing work", "Retainers for after launch"),
+        advHeading("Ongoing work", "Retainers for after launch", "center"),
         cols(
           [
             tier("SEO & Content", "$4k / month", "Compounding organic growth — technical, content and authority work every month.", [
@@ -117,13 +114,13 @@ export function pricingLayout() {
 
     section(
       [
-        sectionIntro("What's always included", "No line-item surprises"),
+        advHeading("What's always included", "No line-item surprises", "center"),
         cols(
           [
-            card([iconBox("FaCheck", "Full ownership", "Code, designs, content and accounts are yours. No licensing traps, no hostage situations.")]),
-            card([iconBox("FaBolt", "Performance guarantee", "Core Web Vitals in the green at handover, or we keep working until they are.", T.violet)]),
-            card([iconBox("FaStar", "30 days support", "Post-launch fixes and adjustments included as standard on every project.", "#22c55e")]),
-            card([iconBox("FaInfo", "Training", "A recorded walkthrough plus a live session so your team can run the site confidently.", "#f59e0b")]),
+            glowCard("FaCheck", "Full ownership", "Code, designs, content and accounts are yours. No licensing traps, no hostage situations.", T.accent),
+            glowCard("FaBolt", "Performance guarantee", "Core Web Vitals in the green at handover, or we keep working until they are.", T.violet),
+            glowCard("FaStar", "30 days support", "Post-launch fixes and adjustments included as standard on every project.", "#22c55e"),
+            glowCard("FaInfo", "Training", "A recorded walkthrough plus a live session so your team can run the site confidently.", "#f59e0b"),
           ],
           { count: 4, gap: "20px" }
         ),
@@ -133,7 +130,7 @@ export function pricingLayout() {
 
     section(
       [
-        sectionIntro("Pricing questions", "The things people ask before signing"),
+        advHeading("Pricing questions", "The things people ask before signing", "center"),
         n("Faq", {
           title: "",
           faqs: [
@@ -161,9 +158,9 @@ export function pricingLayout() {
       {
         align: "center",
         padY: "116px",
+        background: GLOW.dual,
         style: {
           textAlign: "center",
-          background: "linear-gradient(135deg, rgba(37,99,255,0.20) 0%, rgba(124,58,237,0.20) 100%)",
           borderStyle: "solid",
           borderWidth: "1px",
           borderColor: "rgba(255,255,255,0.10)",

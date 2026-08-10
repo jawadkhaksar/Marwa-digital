@@ -1,4 +1,4 @@
-import { T, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, doc, n, reveal } from "../kit.mjs";
+import { T, IMG, GLOW, pill, splitHeading, advHeading, glowCard, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, doc, n, reveal } from "../kit.mjs";
 
 export const blogMeta = {
   slug: "insights",
@@ -13,19 +13,16 @@ export function blogLayout() {
   return doc([
     section(
       [
-        eyebrow("Insights"),
-        h("Things we've learned shipping real projects", "h1", { align: "center" }),
-        p(
-          "No listicles, no rewritten press releases. Just what actually worked (and what didn't) across a decade of building sites, stores and brands.",
-          { align: "center", fontSize: "1.12rem", maxWidth: "740px" }
-        ),
+        pill("Insights"),
+        splitHeading("Things we've learned", " shipping real projects.", "center", "h1"),
+        p("No listicles, no rewritten press releases. Just what actually worked (and what didn't) across a decade of building sites, stores and brands.", { align: "center", fontSize: "1.1rem", maxWidth: "700px", marginLeft: "auto", marginRight: "auto" }),
       ],
-      { backgroundImage: IMG.code, overlay: "rgba(8,11,31,0.88)", padY: "126px", align: "center", style: { textAlign: "center" } }
+      { padY: "116px", align: "center", background: GLOW.topLeft, style: { textAlign: "center" } }
     ),
 
     section(
       [
-        sectionIntro("Latest articles", "Fresh from the team"),
+        advHeading("Latest articles", "Fresh from the team", "center"),
         n("Posts", { columns: "3", itemCount: "9", showExcerpt: true, showDate: true }, { timelines: reveal(0.05) }),
       ],
       {}
@@ -33,13 +30,13 @@ export function blogLayout() {
 
     section(
       [
-        sectionIntro("What we write about", "Four themes we keep coming back to"),
+        advHeading("What we write about", "Four themes we keep coming back to", "center"),
         cols(
           [
-            card([iconBox("FaBolt", "Performance", "Why load time is a revenue metric, and the specific things that actually move Core Web Vitals.")]),
-            card([iconBox("FaSearch", "Technical SEO", "Crawl budgets, information architecture and the structural work that outlasts algorithm updates.", T.violet)]),
-            card([iconBox("FaChartLine", "Conversion", "Research methods, testing discipline and the psychology behind pages that persuade.", "#22c55e")]),
-            card([iconBox("FaStar", "Brand strategy", "Positioning, messaging and the difference between looking different and being different.", "#f59e0b")]),
+            glowCard("FaBolt", "Performance", "Why load time is a revenue metric, and the specific things that actually move Core Web Vitals.", T.accent),
+            glowCard("FaSearch", "Technical SEO", "Crawl budgets, information architecture and the structural work that outlasts algorithm updates.", T.violet),
+            glowCard("FaChartLine", "Conversion", "Research methods, testing discipline and the psychology behind pages that persuade.", "#22c55e"),
+            glowCard("FaStar", "Brand strategy", "Positioning, messaging and the difference between looking different and being different.", "#f59e0b"),
           ],
           { count: 4, gap: "20px" }
         ),

@@ -1,4 +1,4 @@
-import { T, IMG, section, sectionIntro, cols, card, h, p, eyebrow, iconBox, doc, n, reveal, spacer } from "../kit.mjs";
+import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, iconBox, doc, n, reveal, spacer } from "../kit.mjs";
 
 export const contactMeta = {
   slug: "contact",
@@ -13,14 +13,11 @@ export function contactLayout() {
   return doc([
     section(
       [
-        eyebrow("Contact"),
-        h("Tell us what you're trying to build", "h1", { align: "center" }),
-        p(
-          "Send us a few details and we'll come back within one business day with honest feedback, a suggested approach and a ballpark budget — before you commit to anything.",
-          { align: "center", fontSize: "1.12rem", maxWidth: "740px" }
-        ),
+        pill("Contact"),
+        splitHeading("Tell us what you're", " trying to build.", "center", "h1"),
+        p("Send us a few details and we'll come back within one business day with honest feedback, a suggested approach and a ballpark budget — before you commit to anything.", { align: "center", fontSize: "1.1rem", maxWidth: "700px", marginLeft: "auto", marginRight: "auto" }),
       ],
-      { backgroundImage: IMG.collab, overlay: "rgba(8,11,31,0.88)", padY: "120px", align: "center", style: { textAlign: "center" } }
+      { padY: "116px", align: "center", background: GLOW.topLeft, style: { textAlign: "center" } }
     ),
 
     section(
@@ -57,10 +54,10 @@ export function contactLayout() {
             }),
             n("Section", { layoutMode: "flex", direction: "column", gap: "18px", contentWidth: "full", background: "transparent" }, {
               children: [
-                card([iconBox("FaMail", "Email us", "hello@marwadigital.com — we answer every enquiry within one business day.")]),
-                card([iconBox("FaPhone", "Call us", "Prefer to talk it through? Book a 30-minute call and we'll come prepared.", T.violet)]),
-                card([iconBox("FaClock", "Office hours", "Monday to Friday, 9:00–18:00. Urgent support for retainer clients is 24/7.", "#22c55e")]),
-                card([iconBox("FaCheck", "What happens next", "We review your brief, come back with questions or a proposal, then scope properly together. No pressure, no sales sequence.", "#f59e0b")]),
+                glowCard("FaMail", "Email us", "hello@marwadigital.com — we answer every enquiry within one business day.", T.accent),
+                glowCard("FaPhone", "Call us", "Prefer to talk it through? Book a 30-minute call and we'll come prepared.", T.violet),
+                glowCard("FaClock", "Office hours", "Monday to Friday, 9:00–18:00. Urgent support for retainer clients is 24/7.", "#22c55e"),
+                glowCard("FaCheck", "What happens next", "We review your brief, come back with questions or a proposal, then scope properly together. No pressure, no sales sequence.", "#f59e0b"),
               ],
             }),
           ],
@@ -72,7 +69,7 @@ export function contactLayout() {
 
     section(
       [
-        sectionIntro("Before you write", "Three things that make our first reply more useful"),
+        advHeading("Before you write", "Three things that make our first reply more useful", "center"),
         cols(
           [
             card([h("What's the outcome?", "h3"), p("“More qualified leads” tells us more than “a new website”. Tell us the business result you're chasing and we can tell you whether a rebuild is even the right lever.")]),
@@ -87,7 +84,7 @@ export function contactLayout() {
 
     section(
       [
-        sectionIntro("Common questions", "Answered before you ask"),
+        advHeading("Common questions", "Answered before you ask", "center"),
         n("Faq", {
           title: "",
           faqs: [
@@ -117,10 +114,10 @@ export function contactLayout() {
       ],
       {
         align: "center",
-        padY: "110px",
+        padY: "116px",
+        background: GLOW.dual,
         style: {
           textAlign: "center",
-          background: "linear-gradient(135deg, rgba(37,99,255,0.20) 0%, rgba(124,58,237,0.20) 100%)",
           borderStyle: "solid",
           borderWidth: "1px",
           borderColor: "rgba(255,255,255,0.10)",

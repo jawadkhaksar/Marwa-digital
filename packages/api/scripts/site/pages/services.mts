@@ -1,4 +1,4 @@
-import { T, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, counter, image, doc, n, reveal } from "../kit.mjs";
+import { T, GLOW, pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row, IMG, section, sectionIntro, cols, card, h, p, eyebrow, button, iconBox, counter, image, doc, n, reveal } from "../kit.mjs";
 
 export const servicesMeta = {
   slug: "services",
@@ -51,31 +51,39 @@ export function servicesLayout() {
   return doc([
     section(
       [
-        eyebrow("Our services"),
-        h("Everything you need to compete online, under one roof", "h1", { align: "center" }),
-        p(
-          "Six disciplines that work together instead of against each other. Take one, or hand us the whole thing — either way you get senior people, a fixed price and a date you can plan around.",
-          { align: "center", fontSize: "1.12rem", maxWidth: "780px" }
+        cols(
+          [
+            n("Section", { layoutMode: "flex", direction: "column", gap: "22px", contentWidth: "full", background: "transparent", justifyContent: "center", alignItems: "flex-start" }, {
+              children: [
+                pill("Our services"),
+                splitHeading("Everything you need to compete online,", " under one roof.", "left", "h1"),
+                p("Six disciplines that work together instead of against each other. Take one, or hand us the whole thing — either way you get senior people, a fixed price and a date you can plan around.", { fontSize: "1.12rem", maxWidth: "540px" }),
+                row([button("Get a proposal", "/contact"), button("See pricing", "/pricing", "ghost")]),
+              ],
+            }),
+            stackedImages([IMG.desk, IMG.code, IMG.studio]),
+          ],
+          { count: 2, ratio: "66-33", gap: "56px", align: "center" }
         ),
-        n("Section", { layoutMode: "flex", direction: "row", gap: "14px", wrap: "wrap", justifyContent: "center", contentWidth: "full", background: "transparent" }, {
-          children: [button("Get a proposal", "/contact"), button("See pricing", "/pricing", "ghost")],
-          style: { marginTop: "12px" },
-          timelines: reveal(0.18),
-        }),
       ],
-      { backgroundImage: IMG.desk, overlay: "rgba(8,11,31,0.85)", padY: "132px", align: "center", style: { textAlign: "center" } }
+      { padY: "124px", background: GLOW.topLeft, style: { minHeight: "72vh", justifyContent: "center" } }
     ),
+
+    section([marquee(["Web Design", "Development", "Technical SEO", "E-commerce", "Branding", "Product & UX", "CRO", "Content"])], {
+      padY: "34px", background: T.bgAlt,
+      style: { borderStyle: "solid", borderWidth: "1px", borderColor: "rgba(255,255,255,0.07)" },
+    }),
 
     section(
       [
         cols(
           [
-            card([iconBox("FaPalette", "Web Design", "Interfaces designed around how your customers actually buy.")]),
-            card([iconBox("FaCode", "Web Development", "Fast, accessible builds on modern frameworks.", T.violet)]),
-            card([iconBox("FaSearch", "SEO & Content", "Organic growth that compounds quarter over quarter.", "#22c55e")]),
-            card([iconBox("FaShoppingCart", "E-commerce", "Storefronts engineered for AOV and repeat purchase.", "#f59e0b")]),
-            card([iconBox("FaStar", "Branding", "Positioning and identity that makes you unmistakable.", "#ec4899")]),
-            card([iconBox("FaMobile", "Product & UX", "Research, prototyping and design systems for software teams.", "#06b6d4")]),
+            glowCard("FaPalette", "Web Design", "Interfaces designed around how your customers actually buy.", T.accent),
+            glowCard("FaCode", "Web Development", "Fast, accessible builds on modern frameworks.", T.violet),
+            glowCard("FaSearch", "SEO & Content", "Organic growth that compounds quarter over quarter.", "#22c55e"),
+            glowCard("FaShoppingCart", "E-commerce", "Storefronts engineered for AOV and repeat purchase.", "#f59e0b"),
+            glowCard("FaStar", "Branding", "Positioning and identity that makes you unmistakable.", "#ec4899"),
+            glowCard("FaMobile", "Product & UX", "Research, prototyping and design systems for software teams.", "#06b6d4"),
           ],
           { count: 3 }
         ),
@@ -193,7 +201,7 @@ export function servicesLayout() {
 
     section(
       [
-        sectionIntro("How engagements work", "Three ways to work with us"),
+        advHeading("How engagements work", "Three ways to work with us", "center"),
         cols(
           [
             card([h("Project", "h3"), p("A defined build with a fixed scope, fixed price and a launch date. Best for redesigns, new sites and rebrands."), p("<strong>From $12,000</strong>", { color: T.text })]),
@@ -224,9 +232,9 @@ export function servicesLayout() {
       {
         align: "center",
         padY: "116px",
+        background: GLOW.dual,
         style: {
           textAlign: "center",
-          background: "linear-gradient(135deg, rgba(37,99,255,0.20) 0%, rgba(124,58,237,0.20) 100%)",
           borderStyle: "solid",
           borderWidth: "1px",
           borderColor: "rgba(255,255,255,0.10)",

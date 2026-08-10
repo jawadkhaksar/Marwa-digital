@@ -70,6 +70,99 @@ export function reveal(delay = 0, y = 34): NonNullable<LayoutNode["timelines"]> 
   ];
 }
 
+/**
+ * Scroll-scrubbed parallax — the element drifts as the page moves rather
+ * than playing once. Used on section imagery so long pages feel alive
+ * while scrolling, not just at the moment each section first appears.
+ */
+export function parallax(distance = 46): NonNullable<LayoutNode["timelines"]> {
+  return [
+    {
+      version: 2,
+      duration: 1,
+      trigger: { mode: "onScroll", scrollConfig: { scrub: 0.6, start: "top bottom", end: "bottom top", pin: false } },
+      tracks: [
+        {
+          id: uid("trk"),
+          property: "y",
+          keyframes: [
+            { id: uid("kf"), time: 0, value: distance, easingOut: "linear", easingIn: "linear", interpolation: "smooth" },
+            { id: uid("kf"), time: 1, value: -distance, easingOut: "linear", easingIn: "linear", interpolation: "smooth" },
+          ],
+        },
+      ],
+      cssVarTracks: [],
+      clipPathTracks: [],
+    },
+  ];
+}
+
+/** Entrance that scales up slightly as it fades in — for hero visuals. */
+export function revealScale(delay = 0): NonNullable<LayoutNode["timelines"]> {
+  return [
+    {
+      version: 2,
+      duration: 0.9,
+      delay,
+      trigger: { mode: "onScroll", scrollConfig: { scrub: false, start: "top 88%", end: "top 45%", pin: false } },
+      tracks: [
+        {
+          id: uid("trk"),
+          property: "opacity",
+          keyframes: [
+            { id: uid("kf"), time: 0, value: 0, easingOut: "power2.out", easingIn: "power2.out", interpolation: "smooth" },
+            { id: uid("kf"), time: 0.9, value: 1, easingOut: "power2.out", easingIn: "power2.out", interpolation: "smooth" },
+          ],
+        },
+        {
+          id: uid("trk"),
+          property: "scale",
+          keyframes: [
+            { id: uid("kf"), time: 0, value: 0.92, easingOut: "power3.out", easingIn: "power3.out", interpolation: "smooth" },
+            { id: uid("kf"), time: 0.9, value: 1, easingOut: "power3.out", easingIn: "power3.out", interpolation: "smooth" },
+          ],
+        },
+      ],
+      cssVarTracks: [],
+      clipPathTracks: [],
+    },
+  ];
+}
+
+/** Word-by-word headline reveal — reserved for hero/statement headings. */
+export function revealWords(delay = 0): NonNullable<LayoutNode["timelines"]> {
+  return [
+    {
+      version: 2,
+      duration: 0.7,
+      delay,
+      trigger: { mode: "onScroll", scrollConfig: { scrub: false, start: "top 88%", end: "top 45%", pin: false } },
+      splitText: "words",
+      stagger: { amount: 0.5, from: "start", ease: "power2.out" },
+      tracks: [
+        {
+          id: uid("trk"),
+          property: "opacity",
+          keyframes: [
+            { id: uid("kf"), time: 0, value: 0, easingOut: "power2.out", easingIn: "power2.out", interpolation: "smooth" },
+            { id: uid("kf"), time: 0.7, value: 1, easingOut: "power2.out", easingIn: "power2.out", interpolation: "smooth" },
+          ],
+        },
+        {
+          id: uid("trk"),
+          property: "y",
+          keyframes: [
+            { id: uid("kf"), time: 0, value: 26, easingOut: "power3.out", easingIn: "power3.out", interpolation: "smooth" },
+            { id: uid("kf"), time: 0.7, value: 0, easingOut: "power3.out", easingIn: "power3.out", interpolation: "smooth" },
+          ],
+        },
+      ],
+      cssVarTracks: [],
+      clipPathTracks: [],
+    },
+  ];
+}
+
 /** Staggered version for grids/rows — children animate in sequence. */
 export function revealStagger(amount = 0.12): NonNullable<LayoutNode["timelines"]> {
   const [base] = reveal();
@@ -321,7 +414,7 @@ export function image(src: string, alt: string, radius = T.radius): LayoutNode {
         hover: { transform: "scale(1.03)" },
         overflow: "hidden",
       },
-      timelines: reveal(0.08, 26),
+      timelines: [...revealScale(0.05), ...parallax(30)],
     }
   );
 }
@@ -392,7 +485,7 @@ export function splitHeading(part1: string, part2: string, align: "left" | "cent
       fontSize: level === "h1" ? "clamp(2.7rem, 5.6vw, 4.5rem)" : "clamp(2rem, 4vw, 3.2rem)",
       fontWeight: "800",
     },
-    { style: { letterSpacing: "-0.025em", lineHeight: "1.07" }, timelines: reveal(0.05) }
+    { style: { letterSpacing: "-0.025em", lineHeight: "1.07" }, timelines: revealWords(0.05) }
   );
 }
 
@@ -512,7 +605,7 @@ export function stackedImages(images: string[]): LayoutNode {
       borderColor: "rgba(255,255,255,0.14)",
       boxShadow: "0 26px 70px rgba(2,6,23,0.65)",
     },
-    { timelines: reveal(0.12, 30) }
+    { timelines: [...revealScale(0.1), ...parallax(24)] }
   );
 }
 
