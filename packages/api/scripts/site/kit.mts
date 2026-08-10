@@ -88,26 +88,51 @@ export interface SectionOpts {
   style?: Style;
 }
 
-/** A full-bleed band with a centered, max-width content column — the structural unit every page below is composed from. */
+/**
+ * A full-bleed band with a centered, max-width content column.
+ *
+ * Deliberately two nested Sections. `contentWidth: "boxed"` clamps the
+ * element it's set on — background and all (see blockComponents.tsx, which
+ * maps it to max-width + margin auto on the wrapper itself) — so setting it
+ * on the outer band would shrink the background to 1200px and leave bare
+ * gutters either side on wide screens. The outer stays "full" to carry the
+ * background and vertical rhythm; the inner "boxed" one constrains the
+ * content.
+ */
 export function section(children: LayoutNode[], o: SectionOpts = {}): LayoutNode {
-  const props: Record<string, unknown> = {
+  const outerProps: Record<string, unknown> = {
     layoutMode: "flex",
     direction: "column",
-    justifyContent: "flex-start",
-    alignItems: o.align ?? "stretch",
-    gap: o.gap ?? "28px",
-    contentWidth: "boxed",
-    width: o.width ?? T.maxWidth,
+    justifyContent: "center",
+    alignItems: "stretch",
+    gap: "0px",
+    contentWidth: "full",
     background: o.background ?? "transparent",
     htmlTag: "section",
   };
   if (o.backgroundImage) {
-    props.backgroundImage = o.backgroundImage;
-    props.backgroundSize = "cover";
-    props.backgroundPosition = "center";
-    props.backgroundOverlayType = "color";
-    props.backgroundOverlayColor = o.overlay ?? "rgba(8,11,31,0.78)";
+    outerProps.backgroundImage = o.backgroundImage;
+    outerProps.backgroundSize = "cover";
+    outerProps.backgroundPosition = "center";
+    outerProps.backgroundOverlayType = "color";
+    outerProps.backgroundOverlayColor = o.overlay ?? "rgba(8,11,31,0.78)";
   }
+
+  const inner = n(
+    "Section",
+    {
+      layoutMode: "flex",
+      direction: "column",
+      justifyContent: "flex-start",
+      alignItems: o.align ?? "stretch",
+      gap: o.gap ?? "28px",
+      contentWidth: "boxed",
+      width: o.width ?? T.maxWidth,
+      background: "transparent",
+    },
+    { children, style: { width: "100%" }, name: o.id ? `${o.id}-inner` : undefined }
+  );
+
   const style: Style = {
     paddingTop: o.padY ?? T.sectionPadY,
     paddingBottom: o.padY ?? T.sectionPadY,
@@ -117,7 +142,7 @@ export function section(children: LayoutNode[], o: SectionOpts = {}): LayoutNode
     ...(o.id ? { htmlId: o.id } : {}),
     ...(o.style ?? {}),
   };
-  return n("Section", props, { children, style, name: o.id });
+  return n("Section", outerProps, { children: [inner], style, name: o.id });
 }
 
 /** Small uppercase label that sits above a section title. */
@@ -313,6 +338,257 @@ export function sectionIntro(kicker: string, title: string, body?: string): Layo
     "Section",
     { layoutMode: "flex", direction: "column", gap: "16px", alignItems: "center", contentWidth: "boxed", width: "760px", background: "transparent" },
     { children: kids, style: { textAlign: "center", marginBottom: "18px", blockAlign: "center" } }
+  );
+}
+
+// ── Depth & atmosphere ────────────────────────────────────────────────────
+// Flat colour bands are what make a generated page read as "template". These
+// layered radial gradients give each section a light source, so sections
+// differ from one another without needing a photo behind every one.
+
+export const GLOW = {
+  topLeft: `radial-gradient(1100px 520px at 12% -10%, rgba(37,99,255,0.22), transparent 62%), ${T.bg}`,
+  topRight: `radial-gradient(1000px 480px at 88% -6%, rgba(124,58,237,0.20), transparent 60%), ${T.bg}`,
+  center: `radial-gradient(900px 520px at 50% 0%, rgba(37,99,255,0.16), transparent 62%), ${T.bgAlt}`,
+  dual: `radial-gradient(760px 420px at 8% 8%, rgba(37,99,255,0.20), transparent 58%), radial-gradient(760px 420px at 92% 92%, rgba(124,58,237,0.18), transparent 58%), ${T.bg}`,
+  soft: `radial-gradient(1200px 600px at 50% 110%, rgba(124,58,237,0.16), transparent 60%), ${T.bgAlt}`,
+};
+
+/** Small capsule label — the "badge" above a hero headline. */
+export function pill(text: string): LayoutNode {
+  return n(
+    "Heading",
+    { text, level: "div", fontSize: "12.5px", fontWeight: "700", letterSpacing: "0.16em", textTransform: "uppercase", color: "#c7d2fe", align: "center" },
+    {
+      style: {
+        background: "rgba(37,99,255,0.14)",
+        borderStyle: "solid",
+        borderWidth: "1px",
+        borderColor: "rgba(37,99,255,0.42)",
+        borderRadius: "9999px",
+        paddingTop: "9px",
+        paddingBottom: "9px",
+        paddingLeft: "20px",
+        paddingRight: "20px",
+        blockAlign: "left",
+        width: "fit-content",
+      },
+      timelines: reveal(0, 16),
+    }
+  );
+}
+
+/** Two-tone headline — the second half picks up the brand accent. */
+export function splitHeading(part1: string, part2: string, align: "left" | "center" = "left", level: "h1" | "h2" = "h2"): LayoutNode {
+  return n(
+    "DualColorHeading",
+    {
+      part1,
+      part2,
+      level,
+      align,
+      part1Color: T.text,
+      part2Color: T.accent,
+      fontSize: level === "h1" ? "clamp(2.7rem, 5.6vw, 4.5rem)" : "clamp(2rem, 4vw, 3.2rem)",
+      fontWeight: "800",
+    },
+    { style: { letterSpacing: "-0.025em", lineHeight: "1.07" }, timelines: reveal(0.05) }
+  );
+}
+
+/** Section header with an uppercase kicker, big title and accent rule. */
+export function advHeading(kicker: string, title: string, align: "left" | "center" = "center", highlight = ""): LayoutNode {
+  return n(
+    "AdvancedHeading",
+    {
+      subtitle: kicker,
+      title,
+      highlightText: highlight,
+      dividerEnabled: true,
+      align,
+      subtitleColor: T.accent,
+      subtitleFontSize: "13px",
+      subtitleLetterSpacing: "0.18em",
+      titleColor: T.text,
+      titleFontSize: "clamp(2rem, 4vw, 3.1rem)",
+      titleFontWeight: "800",
+      highlightColor: T.accent,
+      dividerColor: T.accent,
+    },
+    { style: { letterSpacing: "-0.02em", ...(align === "center" ? { blockAlign: "center" } : {}) }, timelines: reveal(0.04) }
+  );
+}
+
+/** Feature card with a coloured glow — richer than a flat bordered box. */
+export function glowCard(icon: string, title: string, description: string, glow = T.accent, cta?: { label: string; url: string }): LayoutNode {
+  return n(
+    "GlowingCard",
+    {
+      icon,
+      title,
+      description,
+      glowColor: glow,
+      glowIntensity: "34px",
+      borderRadius: "18px",
+      cardBackground: "rgba(255,255,255,0.035)",
+      cardBorderStyle: "solid",
+      cardBorderWidth: "1px",
+      cardBorderColor: "rgba(255,255,255,0.10)",
+      iconColor: glow,
+      titleColor: T.text,
+      descColor: T.muted,
+      ctaLabel: cta?.label ?? "",
+      ctaUrl: cta?.url ?? "",
+    },
+    { style: { height: "100%" } }
+  );
+}
+
+/** Numbered process step. */
+export function step(number: string, title: string, description: string, color = T.accent): LayoutNode {
+  return n(
+    "NumberBox",
+    {
+      number,
+      title,
+      description,
+      numberColor: "#ffffff",
+      numberBackground: color,
+      numberSize: "58px",
+      numberFontSize: "20px",
+      titleColor: T.text,
+      titleFontSize: "1.18rem",
+      descColor: T.muted,
+    },
+    { style: { height: "100%" } }
+  );
+}
+
+/** Scrolling keyword band — breaks up long pages and adds motion. */
+export function marquee(items: string[], speed = 26): LayoutNode {
+  return n("MarqueeStrip", {
+    items,
+    showIcon: true,
+    speedSeconds: speed,
+    gap: "1.25rem",
+    background: "transparent",
+    color: T.text,
+    pillBackground: "rgba(255,255,255,0.05)",
+    pillColor: "rgba(255,255,255,0.86)",
+    fontSize: "0.95rem",
+    fontWeight: "600",
+  });
+}
+
+/** Big scroll-revealed statement — a full-width moment between dense sections. */
+export function statement(text: string): LayoutNode {
+  return n("ScrollTextAnimation", {
+    text,
+    unit: "word",
+    revealStyle: "opacity",
+    dimmedOpacity: "0.14",
+    align: "center",
+    color: T.text,
+    fontSize: "clamp(1.7rem, 4.2vw, 3.2rem)",
+    fontWeight: "800",
+    lineHeight: "1.25",
+  });
+}
+
+/** Overlapping, tilted photo stack — a far more interesting hero visual than one flat image. */
+export function stackedImages(images: string[]): LayoutNode {
+  return n(
+    "StackedImages",
+    {
+      images: [
+        { image: images[0], rotate: "-7deg", offsetX: "0px", offsetY: "10px" },
+        { image: images[1], rotate: "4deg", offsetX: "34px", offsetY: "-12px" },
+        { image: images[2], rotate: "-2deg", offsetX: "68px", offsetY: "14px" },
+      ],
+      hoverExpand: true,
+      imageWidth: "260px",
+      imageHeight: "330px",
+      borderRadius: "18px",
+      borderColor: "rgba(255,255,255,0.14)",
+      boxShadow: "0 26px 70px rgba(2,6,23,0.65)",
+    },
+    { timelines: reveal(0.12, 30) }
+  );
+}
+
+/** Compact metric block used in rows beneath a hero. */
+export function statTile(value: string, label: string, accent = T.accent): LayoutNode {
+  return n(
+    "Section",
+    { layoutMode: "flex", direction: "column", gap: "4px", contentWidth: "full", background: "rgba(255,255,255,0.04)" },
+    {
+      children: [
+        n("Counter", {
+          value,
+          label,
+          countUp: true,
+          countDuration: 2,
+          valueColor: T.text,
+          valueFontSize: "clamp(1.7rem, 2.6vw, 2.3rem)",
+          valueFontWeight: "800",
+          labelColor: T.muted,
+          labelFontSize: "0.82rem",
+          labelTextTransform: "uppercase",
+          labelLetterSpacing: "0.1em",
+        }),
+      ],
+      style: {
+        paddingTop: "22px",
+        paddingBottom: "22px",
+        paddingLeft: "20px",
+        paddingRight: "20px",
+        borderStyle: "solid",
+        borderWidth: "1px",
+        borderColor: "rgba(255,255,255,0.10)",
+        borderRadius: "14px",
+        textAlign: "center",
+        hoverTransitionDuration: "0.3s",
+        hover: { borderColor: accent, background: "rgba(255,255,255,0.07)", transform: "translateY(-4px)" },
+      },
+    }
+  );
+}
+
+/** Bordered "quote" card with an oversized mark, for testimonials. */
+export function quote(text: string, author: string, role: string, accent = T.accent): LayoutNode {
+  return n(
+    "Section",
+    { layoutMode: "flex", direction: "column", gap: "14px", contentWidth: "full", background: "rgba(255,255,255,0.035)" },
+    {
+      children: [
+        n("Heading", { text: "“", level: "div", fontSize: "62px", fontWeight: "800", color: accent }, { style: { lineHeight: "0.7", opacity: "0.55" } }),
+        p(text, { fontSize: "1.04rem", color: "rgba(255,255,255,0.86)", lineHeight: "1.7" }),
+        n("Heading", { text: author, level: "div", fontSize: "0.98rem", fontWeight: "700", color: T.text }),
+        n("Heading", { text: role, level: "div", fontSize: "0.86rem", fontWeight: "500", color: accent }),
+      ],
+      style: {
+        paddingTop: "32px",
+        paddingBottom: "32px",
+        paddingLeft: "28px",
+        paddingRight: "28px",
+        borderStyle: "solid",
+        borderWidth: "1px",
+        borderColor: "rgba(255,255,255,0.10)",
+        borderRadius: T.radius,
+        height: "100%",
+        hoverTransitionDuration: "0.32s",
+        hover: { borderColor: accent, transform: "translateY(-6px)", boxShadow: "0 22px 54px rgba(2,6,23,0.55)" },
+      },
+    }
+  );
+}
+
+/** Horizontal flex row that doesn't force a grid — used for button/stat clusters. */
+export function row(children: LayoutNode[], justify: "flex-start" | "center" = "flex-start", gap = "14px"): LayoutNode {
+  return n(
+    "Section",
+    { layoutMode: "flex", direction: "row", gap, wrap: "wrap", alignItems: "center", justifyContent: justify, contentWidth: "full", background: "transparent" },
+    { children, timelines: reveal(0.16) }
   );
 }
 

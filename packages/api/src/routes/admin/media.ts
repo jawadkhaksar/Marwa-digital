@@ -5,7 +5,7 @@ import path from "path";
 import { prisma } from "@marwa/db";
 import { isAllowedImageUpload, sanitizeSvg, type AllowedUploadKind } from "../../lib/security";
 import { convertAssetToWebp, mimeTypeForExtension, needsWebpConversion } from "../../lib/mediaConversion";
-import { storeFile, deleteStoredFile } from "../../lib/storage";
+import { storeFile, deleteStoredFile, isBlobConfigured } from "../../lib/storage";
 
 export const adminMediaRouter = Router();
 
@@ -36,6 +36,34 @@ adminMediaRouter.get("/", async (_req, res) => {
   res.json(media);
 });
 
+// Reports where uploads will be written and whether that target is usable,
+// without exposing the token itself. Exists because a failed upload in a
+// serverless deployment is otherwise almost impossible to diagnose from the
+// outside: local-disk mode "works" right up until the request ends and the
+// file silently disappears with it.
+adminMediaRouter.get("/storage-status", async (_req, res) => {
+  const blob = isBlobConfigured();
+  let writable: boolean | null = null;
+  let error: string | null = null;
+  if (blob) {
+    try {
+      const probe = await storeFile(`.storage-probe-${crypto.randomUUID()}.txt`, Buffer.from("ok", "utf8"), "text/plain");
+      await deleteStoredFile(probe);
+      writable = true;
+    } catch (err) {
+      writable = false;
+      error = err instanceof Error ? err.message : "Unknown error";
+    }
+  }
+  res.json({
+    mode: blob ? "vercel-blob" : "local-disk",
+    tokenPresent: blob,
+    writable,
+    error,
+    warning: blob ? null : "Uploads are being written to local disk. On a serverless host that filesystem is discarded after each request, so files will not persist.",
+  });
+});
+
 adminMediaRouter.post(
   "/",
   (req, res, next) => {
@@ -63,7 +91,20 @@ adminMediaRouter.post(
     const contents = isSvg ? Buffer.from(sanitizeSvg(req.file.buffer.toString("utf8")), "utf8") : req.file.buffer;
     const filename = `${crypto.randomUUID()}.${ext}`;
     const mimeType = mimeTypeForExtension(ext);
-    const url = await storeFile(filename, contents, mimeType);
+
+    // Storage failures are reported specifically rather than falling through
+    // to the generic 500 handler: the causes an admin can actually act on
+    // (a misconfigured/missing blob token, a full disk, a rejected upload)
+    // are indistinguishable from a code bug once flattened to "Internal
+    // server error", which is exactly the state this endpoint was in.
+    let url: string;
+    try {
+      url = await storeFile(filename, contents, mimeType);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "Unknown storage error";
+      console.error("[media] Upload failed:", err);
+      return res.status(502).json({ error: `Upload storage failed: ${detail}` });
+    }
 
     const category = typeof req.body.category === "string" ? req.body.category : undefined;
     const asset = await prisma.mediaAsset.create({

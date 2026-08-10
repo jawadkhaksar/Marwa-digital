@@ -9,6 +9,8 @@ import { aboutMeta, aboutLayout } from "./pages/about.mjs";
 import { servicesMeta, servicesLayout } from "./pages/services.mjs";
 import { caseStudiesMeta, caseStudiesLayout } from "./pages/caseStudies.mjs";
 import { contactMeta, contactLayout } from "./pages/contact.mjs";
+import { pricingMeta, pricingLayout } from "./pages/pricing.mjs";
+import { blogMeta, blogLayout } from "./pages/blog.mjs";
 import type { LayoutDocument } from "@marwa/builder";
 
 interface PageSpec {
@@ -79,6 +81,8 @@ const SPECS: PageSpec[] = [
   { ...servicesMeta, layout: servicesLayout() },
   { ...caseStudiesMeta, layout: caseStudiesLayout() },
   { ...contactMeta, layout: contactLayout() },
+  { ...pricingMeta, layout: pricingLayout() },
+  { ...blogMeta, layout: blogLayout() },
 ];
 
 async function main() {
