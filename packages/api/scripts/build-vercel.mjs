@@ -1,11 +1,12 @@
-// Bundles the whole API into a single CommonJS file for Vercel.
+// Bundles the whole API into a single CommonJS file that Vercel's zero-config
+// `api/` directory serves as one Node.js Function.
 //
 // Why this exists: @marwa/db and @marwa/builder (this monorepo's shared
 // workspace packages) point their package.json "main" straight at raw
 // TypeScript source (`src/index.ts` / `index.ts`) — fine for local dev,
 // where tsx/Next.js transpile on the fly, but Vercel's Node.js Function
 // runtime just does a plain require() on whatever it's given. Left alone,
-// deploying api/server.ts as-is fails at runtime with "Cannot find module
+// deploying src/server.ts as-is fails at runtime with "Cannot find module
 // '.../src/index.ts'" the moment a route imports @marwa/db.
 //
 // esbuild resolves and inlines those two workspace packages' TypeScript
@@ -15,6 +16,11 @@
 // — required normally at runtime from node_modules, exactly like any other
 // ordinary Node deployment, so Vercel's file-tracer can still find and
 // include them.
+//
+// Output goes to api/index.js because Vercel's zero-config convention
+// ("every file in api/ is a Function") is the only mode that also runs this
+// build script — a `builds` key in vercel.json would take over the whole
+// pipeline and skip package.json scripts entirely.
 import { build } from "esbuild";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -41,7 +47,7 @@ await build({
   platform: "node",
   target: "node20",
   format: "cjs",
-  outfile: path.join(root, "dist-vercel", "server.js"),
+  outfile: path.join(root, "api", "index.js"),
   external,
   logLevel: "info",
 });
