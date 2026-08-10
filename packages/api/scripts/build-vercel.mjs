@@ -17,10 +17,12 @@
 // ordinary Node deployment, so Vercel's file-tracer can still find and
 // include them.
 //
-// Output goes to api/index.js because Vercel's zero-config convention
-// ("every file in api/ is a Function") is the only mode that also runs this
-// build script — a `builds` key in vercel.json would take over the whole
-// pipeline and skip package.json scripts entirely.
+// Output goes to dist-vercel/server.js, which the committed api/index.js
+// shim re-exports. That indirection matters: Vercel decides which
+// Serverless Functions exist by scanning api/ in the *source checkout*,
+// before this build script has run — so api/index.js has to be a real
+// committed file, not generated output, or no function is created at all
+// (every route then falls through to the static public/ placeholder).
 import { build } from "esbuild";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -47,7 +49,7 @@ await build({
   platform: "node",
   target: "node20",
   format: "cjs",
-  outfile: path.join(root, "api", "index.js"),
+  outfile: path.join(root, "dist-vercel", "server.js"),
   external,
   logLevel: "info",
 });
