@@ -12,7 +12,16 @@ const FALLBACK_SITE_URL = "https://marwadigital.com";
 const RESERVED_SLUGS = new Set<string>(Object.values(CORE_OVERRIDE_SLUGS));
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [pages, settings] = await Promise.all([api.getPages(), api.getSettings().catch(() => null)]);
+  // Every API call here is failure-tolerant on purpose. This route is
+  // prerendered at build time, so an API that's briefly unreachable during
+  // a deploy would otherwise fail the whole build (Next treats a throwing
+  // prerender as fatal) — taking the entire site down over a sitemap.
+  // Degrading to a smaller sitemap is the right trade: the next deploy or
+  // revalidation picks the missing entries back up.
+  const [pages, settings] = await Promise.all([
+    api.getPages().catch(() => []),
+    api.getSettings().catch(() => null),
+  ]);
   const siteUrl = settings?.siteUrl || FALLBACK_SITE_URL;
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -26,7 +35,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // until there's nothing left.
   const posts: Awaited<ReturnType<typeof api.getPosts>>["items"] = [];
   for (let page = 1; ; page++) {
-    const res = await api.getPosts({ page, limit: 50 });
+    const res = await api.getPosts({ page, limit: 50 }).catch(() => null);
+    if (!res) break;
     posts.push(...res.items);
     if (!res.hasMore) break;
   }
