@@ -17,12 +17,16 @@
 // ordinary Node deployment, so Vercel's file-tracer can still find and
 // include them.
 //
-// Output goes to dist-vercel/server.js, which the committed api/index.js
-// shim re-exports. That indirection matters: Vercel decides which
-// Serverless Functions exist by scanning api/ in the *source checkout*,
-// before this build script has run — so api/index.js has to be a real
-// committed file, not generated output, or no function is created at all
-// (every route then falls through to the static public/ placeholder).
+// Output overwrites the committed api/index.js placeholder in place.
+//
+// Two constraints have to hold at once, and this is what satisfies both:
+// Vercel decides which Serverless Functions exist by scanning api/ in the
+// *source checkout* before this script runs (so api/index.js must be a
+// committed file, or no function is created and every route falls through
+// to the static public/ placeholder) — while the file it actually deploys
+// must be fully self-contained (so nothing is left for Vercel's own
+// bundler to resolve). Overwriting the placeholder gives both, with no
+// intermediate file whose availability depends on build/trace ordering.
 import { build } from "esbuild";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -50,7 +54,7 @@ await build({
   platform: "node",
   target: "node20",
   format: "cjs",
-  outfile: path.join(root, "dist-vercel", "server.js"),
+  outfile: path.join(root, "api", "index.js"),
   external,
   logLevel: "info",
 });
