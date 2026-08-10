@@ -5,7 +5,7 @@ import path from "path";
 import { prisma } from "@marwa/db";
 import { isAllowedImageUpload, sanitizeSvg, type AllowedUploadKind } from "../../lib/security";
 import { convertAssetToWebp, mimeTypeForExtension, needsWebpConversion } from "../../lib/mediaConversion";
-import { storeFile, deleteStoredFile, isBlobConfigured } from "../../lib/storage";
+import { storeFile, deleteStoredFile, isBlobConfigured, blobTokenSource } from "../../lib/storage";
 
 export const adminMediaRouter = Router();
 
@@ -58,6 +58,7 @@ adminMediaRouter.get("/storage-status", async (_req, res) => {
   res.json({
     mode: blob ? "vercel-blob" : "local-disk",
     tokenPresent: blob,
+    tokenSource: blobTokenSource(),
     writable,
     error,
     warning: blob ? null : "Uploads are being written to local disk. On a serverless host that filesystem is discarded after each request, so files will not persist.",

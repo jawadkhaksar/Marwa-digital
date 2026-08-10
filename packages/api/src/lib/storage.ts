@@ -15,8 +15,31 @@ import { put, del } from "@vercel/blob";
 
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
 
+/**
+ * The Vercel Blob read/write token.
+ *
+ * Vercel only names this `BLOB_READ_WRITE_TOKEN` when the store is the
+ * project's default; connecting a named store (or a second one) instead
+ * yields `<STORE_NAME>_READ_WRITE_TOKEN`. The SDK only reads the former, so
+ * a correctly-connected store can still look completely unconfigured —
+ * which silently downgrades uploads to a local filesystem that serverless
+ * discards after each request. Any `*_READ_WRITE_TOKEN` is therefore
+ * accepted and passed explicitly to the SDK.
+ */
+export function blobToken(): string | undefined {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return process.env.BLOB_READ_WRITE_TOKEN;
+  const key = Object.keys(process.env).find((k) => k.endsWith("_READ_WRITE_TOKEN") && process.env[k]);
+  return key ? process.env[key] : undefined;
+}
+
+/** Which env var the token came from — for diagnostics only, never the value itself. */
+export function blobTokenSource(): string | null {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return "BLOB_READ_WRITE_TOKEN";
+  return Object.keys(process.env).find((k) => k.endsWith("_READ_WRITE_TOKEN") && process.env[k]) ?? null;
+}
+
 export function isBlobConfigured(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(blobToken());
 }
 
 function ensureLocalDir() {
@@ -25,8 +48,9 @@ function ensureLocalDir() {
 
 /** Stores a file and returns its public URL. */
 export async function storeFile(filename: string, contents: Buffer, contentType: string): Promise<string> {
-  if (isBlobConfigured()) {
-    const blob = await put(filename, contents, { access: "public", contentType, addRandomSuffix: false });
+  const token = blobToken();
+  if (token) {
+    const blob = await put(filename, contents, { access: "public", contentType, addRandomSuffix: false, token });
     return blob.url;
   }
   ensureLocalDir();
@@ -48,7 +72,7 @@ export async function readStoredFile(url: string): Promise<Buffer> {
 export async function deleteStoredFile(url: string): Promise<void> {
   try {
     if (url.startsWith("http")) {
-      await del(url);
+      await del(url, { token: blobToken() });
     } else {
       await fsp.unlink(path.join(UPLOAD_DIR, path.basename(url)));
     }
