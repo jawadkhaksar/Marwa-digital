@@ -54,6 +54,27 @@ export default async function BlogIndexPage() {
     getBlogChromeLayout("blog_archive_extra"),
   ]);
 
+  // The archive templates are client components (search, category filtering
+  // and load-more are all interactive), which meant even the first page of
+  // posts was fetched in the browser — so /blog's HTML shipped with an empty
+  // grid and crawlers saw no content at all. Fetching the first page here
+  // and handing it down as initial state keeps every interaction working
+  // while making the archive real HTML. Each call degrades to empty rather
+  // than throwing: a blog that renders without its sidebar beats a route
+  // that 500s because one request failed.
+  const pageSize = settings?.postsPerPage ?? 9;
+  const [initialList, initialFeatured, initialCategories] = await Promise.all([
+    api.getPosts({ page: 1, limit: pageSize }).catch(() => null),
+    api.getFeaturedPost().catch(() => null),
+    api.getBlogCategories().catch(() => []),
+  ]);
+  const initialData = {
+    initialPosts: initialList?.items,
+    initialHasMore: initialList?.hasMore,
+    initialFeatured,
+    initialCategories,
+  };
+
   if (settings?.postsPageSlug) {
     const chosenPage = await loadPostsPage(settings.postsPageSlug);
     if (chosenPage) {
@@ -83,7 +104,13 @@ export default async function BlogIndexPage() {
         ) : template === "C" ? (
           <ArchiveTemplateC extraLayout={extraLayout} dateFormat={settings?.dateFormat} postsPerPage={settings?.postsPerPage} permalinkStructure={settings?.permalinkStructure} />
         ) : (
-          <ArchiveTemplateA extraLayout={extraLayout} dateFormat={settings?.dateFormat} postsPerPage={settings?.postsPerPage} permalinkStructure={settings?.permalinkStructure} />
+          <ArchiveTemplateA
+            extraLayout={extraLayout}
+            dateFormat={settings?.dateFormat}
+            postsPerPage={settings?.postsPerPage}
+            permalinkStructure={settings?.permalinkStructure}
+            {...initialData}
+          />
         )}
       </main>
       <SiteFooter />

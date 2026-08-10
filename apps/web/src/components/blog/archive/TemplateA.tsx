@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { api, type PostCard, type BlogCategory } from "@/lib/api";
@@ -64,36 +64,60 @@ export function ArchiveTemplateA({
   dateFormat,
   postsPerPage,
   permalinkStructure,
+  initialPosts,
+  initialHasMore,
+  initialFeatured,
+  initialCategories,
 }: {
   extraLayout?: unknown;
   dateFormat?: string;
   postsPerPage?: number;
   permalinkStructure?: string;
+  /** Server-rendered first page — see the hydration note below. */
+  initialPosts?: PostCard[];
+  initialHasMore?: boolean;
+  initialFeatured?: PostCard | null;
+  initialCategories?: BlogCategory[];
 }) {
   const pageSize = postsPerPage ?? 9;
-  const [featured, setFeatured] = useState<PostCard | null>(null);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
+  // Seeded from the server render when available. Search, category filtering
+  // and load-more all still run client-side — but fetching even the FIRST
+  // page in the browser meant /blog's HTML contained no posts at all, so
+  // crawlers and link previews saw an empty archive. Hydrating from
+  // server-fetched data keeps the interactivity and makes the content real.
+  const [featured, setFeatured] = useState<PostCard | null>(initialFeatured ?? null);
+  const [categories, setCategories] = useState<BlogCategory[]>(initialCategories ?? []);
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [posts, setPosts] = useState<PostCard[]>([]);
+  const [posts, setPosts] = useState<PostCard[]>(initialPosts ?? []);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(initialHasMore ?? false);
+  const [loading, setLoading] = useState(!initialPosts);
+  // Whether the server already supplied the exact result the filter effect
+  // below would fetch on mount (no search, no category, first page).
+  const hasServerData = useRef(Boolean(initialPosts));
 
   useEffect(() => {
-    api.getFeaturedPost().then(setFeatured).catch(() => {});
-    api.getBlogCategories().then(setCategories).catch(() => {});
-  }, []);
+    if (!initialFeatured) api.getFeaturedPost().then(setFeatured).catch(() => {});
+    if (!initialCategories?.length) api.getBlogCategories().then(setCategories).catch(() => {});
+  }, [initialFeatured, initialCategories]);
 
   useEffect(() => {
+    // Don't re-fetch on mount what the server already rendered — that would
+    // discard the server data and flash a spinner over content already on
+    // screen. Subsequent filter changes fall through normally.
+    if (hasServerData.current) {
+      hasServerData.current = false;
+      return;
+    }
     // Flips the loading indicator back on for every re-fetch this effect
     // triggers (search/category changed) — the initial mount's fetch
     // already starts from `loading`'s own true default, so this only
     // matters for the ones after. Genuinely needs to run synchronously
     // (not from inside the request's own callback) so the spinner shows
     // before the network round-trip, not after it resolves.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setLoading(true);
     api
       .getPosts({ page: 1, limit: pageSize, search: search || undefined, category: activeCategory || undefined })
