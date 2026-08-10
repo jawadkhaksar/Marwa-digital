@@ -73,7 +73,7 @@ export function reveal(delay = 0, y = 34): NonNullable<LayoutNode["timelines"]> 
 /** Staggered version for grids/rows — children animate in sequence. */
 export function revealStagger(amount = 0.12): NonNullable<LayoutNode["timelines"]> {
   const [base] = reveal();
-  return [{ ...base, stagger: { amount, from: "start" } }];
+  return [{ ...base, stagger: { amount, from: "start", ease: "power2.out" } }];
 }
 
 export interface SectionOpts {
@@ -124,7 +124,7 @@ export function section(children: LayoutNode[], o: SectionOpts = {}): LayoutNode
 export function eyebrow(text: string): LayoutNode {
   return n(
     "Heading",
-    { text, level: "div", fontSize: "13px", fontWeight: "700", letterSpacing: "0.18em", textTransform: "uppercase", color: T.accent, align: "inherit" },
+    { text, level: "div", fontSize: "13px", fontWeight: "700", letterSpacing: "0.18em", textTransform: "uppercase", color: T.accent },
     { timelines: reveal(0, 18) }
   );
 }

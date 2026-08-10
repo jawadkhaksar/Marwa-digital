@@ -4,7 +4,18 @@ import type { NextConfig } from "next";
 // API host, not bundled with the web app — needs an explicit remotePattern
 // for next/image to optimize it. `images.domains` is deprecated in Next 16.
 const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
-const adminUrl = process.env.ADMIN_URL ?? "http://localhost:3001";
+// The admin origin allowed to frame this site (its Visual Builder embeds a
+// live preview — see the frame-ancestors note below). ADMIN_URL is the
+// documented setting; NEXT_PUBLIC_ADMIN_URL is accepted as an alias, and on
+// Vercel we fall back to deriving it from this deployment's own project
+// name so a sibling "<project>-admin" deployment works without any manual
+// configuration. Getting this wrong doesn't fail loudly — the builder
+// canvas just renders as a blank "refused to connect" frame — so the
+// fallbacks matter more than they look.
+const vercelAdminUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/-web(?=\.|$)/, "-admin")}`
+  : undefined;
+const adminUrl = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL ?? vercelAdminUrl ?? "http://localhost:3001";
 
 // Dev-mode Next/React needs eval() for Fast Refresh and error-overlay stack
 // reconstruction — never needed (or included) in a production build.
