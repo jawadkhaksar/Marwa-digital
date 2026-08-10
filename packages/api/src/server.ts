@@ -49,6 +49,7 @@ import { adminHeatmapsRouter } from "./routes/admin/heatmaps";
 import { adminFormAnalyticsRouter } from "./routes/admin/formAnalytics";
 import { adminOrganizationsRouter } from "./routes/admin/organizations";
 import { adminBackupsRouter } from "./routes/admin/backups";
+import { cronRouter } from "./routes/cron";
 import { requireAdmin, requireRole } from "./lib/auth";
 import { auditLog } from "./lib/auditLogger";
 import { resolveOrganization } from "./middleware/tenant";
@@ -96,6 +97,9 @@ app.use("/api/site-templates", publicSiteTemplatesRouter);
 app.use("/api/style-classes", publicStyleClassesRouter);
 app.use("/api/timed-animations", publicTimedAnimationsRouter);
 app.use("/api/analytics", analyticsRouter);
+// Auth here is a shared secret (CRON_SECRET), not requireAdmin — a cron
+// pinger has no staff login. See routes/cron.ts's top comment.
+app.use("/api/cron", cronRouter);
 
 // auditLog(resource) is mounted right after requireAdmin on every router
 // below that manages real admin-editable content/accounts — it writes one
@@ -160,14 +164,24 @@ process.on("unhandledRejection", (reason) => {
   console.error("[api] Unhandled rejection:", reason);
 });
 
-const port = process.env.PORT ? Number(process.env.PORT) : 4000;
-app.listen(port, () => {
-  console.log(`[api] listening on http://localhost:${port}`);
-});
+// Vercel invokes `app` directly as a request handler per-request (see
+// api/index.ts) — it never calls .listen() and a serverless instance
+// doesn't stay alive between requests, so both the TCP listener and the
+// setInterval pollers below are always-on-host-only (local dev, Railway,
+// a VPS). On Vercel, routes/cron.ts (driven by Vercel Cron Jobs or an
+// external pinger) does the equivalent job instead — see its top comment.
+if (!process.env.VERCEL) {
+  const port = process.env.PORT ? Number(process.env.PORT) : 4000;
+  app.listen(port, () => {
+    console.log(`[api] listening on http://localhost:${port}`);
+  });
 
-// Resumes any Wait/Delay automation steps whose scheduled time has arrived
-// — see workflowEngine.ts.
-startWorkflowScheduler();
-// Promotes any Page/Post whose scheduled publish time has arrived — see
-// publishWorker.ts.
-startPublishScheduler();
+  // Resumes any Wait/Delay automation steps whose scheduled time has
+  // arrived — see workflowEngine.ts.
+  startWorkflowScheduler();
+  // Promotes any Page/Post whose scheduled publish time has arrived — see
+  // publishWorker.ts.
+  startPublishScheduler();
+}
+
+export default app;

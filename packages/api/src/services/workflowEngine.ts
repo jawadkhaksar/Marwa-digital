@@ -234,7 +234,8 @@ export function startWorkflowScheduler(): void {
   }, POLL_INTERVAL_MS);
 }
 
-async function resumeDueDelays(): Promise<void> {
+/** Exported for the Vercel-cron path (routes/cron.ts) as well as the setInterval poller just below. */
+export async function resumeDueDelays(): Promise<void> {
   const due = await prisma.workflowExecutionLog.findMany({
     where: { status: "PENDING", executedAt: { lte: new Date() } },
     include: { workflow: true },

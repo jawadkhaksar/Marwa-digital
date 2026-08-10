@@ -1,10 +1,8 @@
-import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 import { prisma, type MediaAsset } from "@marwa/db";
-
-const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+import { storeFile, readStoredFile, deleteStoredFile } from "./storage";
 
 const MIME_BY_EXTENSION: Record<string, string> = {
   jpg: "image/jpeg",
@@ -43,29 +41,26 @@ export function needsWebpConversion(asset: Pick<MediaAsset, "url">): boolean {
  * corrupt/unreadable image, a disk write failure).
  */
 export async function convertAssetToWebp(asset: MediaAsset): Promise<MediaAsset> {
-  const oldFilename = path.basename(asset.url);
-  const oldPath = path.join(UPLOAD_DIR, oldFilename);
   const newFilename = `${crypto.randomUUID()}.webp`;
-  const newPath = path.join(UPLOAD_DIR, newFilename);
 
-  const original = await fs.readFile(oldPath);
+  const original = await readStoredFile(asset.url);
   const webpBuffer = await sharp(original)
     .rotate() // auto-orient from EXIF (phone photos), then strip the tag, before resizing
     .resize({ width: 1920, withoutEnlargement: true })
     .webp({ quality: 82 })
     .toBuffer();
 
-  await fs.writeFile(newPath, webpBuffer);
+  const newUrl = await storeFile(newFilename, webpBuffer, "image/webp");
 
   const updated = await prisma.mediaAsset.update({
     where: { id: asset.id },
-    data: { url: `/uploads/${newFilename}`, mimeType: "image/webp" },
+    data: { url: newUrl, mimeType: "image/webp" },
   });
 
   // Best-effort — the DB row already points at the new file either way, so a
-  // failure here just leaves an orphaned file on disk rather than breaking
+  // failure here just leaves an orphaned file behind rather than breaking
   // anything a visitor or the admin can see.
-  await fs.unlink(oldPath).catch(() => {});
+  await deleteStoredFile(asset.url);
 
   return updated;
 }

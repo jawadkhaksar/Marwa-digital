@@ -1,16 +1,13 @@
 import { Router } from "express";
 import multer from "multer";
 import crypto from "crypto";
-import fs from "fs";
 import path from "path";
 import { prisma } from "@marwa/db";
 import { isAllowedImageUpload, sanitizeSvg, type AllowedUploadKind } from "../../lib/security";
 import { convertAssetToWebp, mimeTypeForExtension, needsWebpConversion } from "../../lib/mediaConversion";
+import { storeFile, deleteStoredFile } from "../../lib/storage";
 
 export const adminMediaRouter = Router();
-
-const UPLOAD_DIR = path.join(process.cwd(), "uploads");
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const ALLOWED_KINDS: AllowedUploadKind[] = ["jpeg", "png", "webp", "svg", "pdf"];
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "svg", "pdf"]);
@@ -65,16 +62,12 @@ adminMediaRouter.post(
     const isSvg = ext === "svg";
     const contents = isSvg ? Buffer.from(sanitizeSvg(req.file.buffer.toString("utf8")), "utf8") : req.file.buffer;
     const filename = `${crypto.randomUUID()}.${ext}`;
-    fs.writeFileSync(path.join(UPLOAD_DIR, filename), contents);
+    const mimeType = mimeTypeForExtension(ext);
+    const url = await storeFile(filename, contents, mimeType);
 
     const category = typeof req.body.category === "string" ? req.body.category : undefined;
     const asset = await prisma.mediaAsset.create({
-      data: {
-        url: `/uploads/${filename}`,
-        filename: req.file.originalname,
-        category,
-        mimeType: mimeTypeForExtension(ext),
-      },
+      data: { url, filename: req.file.originalname, category, mimeType },
     });
     res.status(201).json(asset);
   }
@@ -199,10 +192,8 @@ adminMediaRouter.delete("/:id", async (req, res) => {
 
   await prisma.mediaAsset.delete({ where: { id: req.params.id } });
 
-  const filePath = path.join(UPLOAD_DIR, path.basename(asset.url));
-  fs.unlink(filePath, () => {
-    /* best-effort cleanup; asset row is already gone either way */
-  });
+  // Best-effort cleanup — the asset row is already gone either way.
+  deleteStoredFile(asset.url);
 
   res.status(204).send();
 });

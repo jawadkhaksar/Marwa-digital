@@ -19,6 +19,9 @@ build/
 # turbo
 .turbo/
 
+# vercel (local CLI project-link metadata — never shared/committed)
+.vercel/
+
 # expo (apps/driver, apps/passenger)
 .expo/
 

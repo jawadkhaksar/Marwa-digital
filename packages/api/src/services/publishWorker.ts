@@ -18,7 +18,8 @@ export function startPublishScheduler(): void {
   }, POLL_INTERVAL_MS);
 }
 
-async function runDueChecks(): Promise<void> {
+/** Exported for the Vercel-cron path (routes/cron.ts) as well as the setInterval poller just below. */
+export async function runDueChecks(): Promise<void> {
   await Promise.all([promoteDuePages(), promoteDuePosts()]);
 }
 

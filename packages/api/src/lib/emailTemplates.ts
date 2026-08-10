@@ -140,11 +140,23 @@ function resolveLocalUploadPath(url: string | null | undefined): string | null {
   return fs.existsSync(abs) ? abs : null;
 }
 
-export async function getBranding(): Promise<{ siteName: string; logoPath: string | null; contactEmail: string; contactPhone: string }> {
+export async function getBranding(): Promise<{
+  siteName: string;
+  logoUrl: string | null;
+  logoLocalPath: string | null;
+  contactEmail: string;
+  contactPhone: string;
+}> {
   const settings = await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
+  const logoImage = settings?.logoImage ?? null;
   return {
     siteName: settings?.siteName || "Marwa Digital",
-    logoPath: resolveLocalUploadPath(settings?.logoImage),
+    // A real public URL (Vercel Blob, or any external image) can be
+    // referenced directly in the email HTML — only a local /uploads/**
+    // path (local dev / no Blob configured) needs the CID-attachment
+    // workaround below, since a recipient's mail client can't reach localhost.
+    logoUrl: logoImage && logoImage.startsWith("http") ? logoImage : null,
+    logoLocalPath: resolveLocalUploadPath(logoImage),
     contactEmail: settings?.contactEmail || "hello@marwadigital.com",
     contactPhone: settings?.contactPhone || "",
   };
@@ -154,11 +166,13 @@ export async function getBranding(): Promise<{ siteName: string; logoPath: strin
  * Embeds the logo as an inline CID attachment rather than a URL — a URL
  * pointing at localhost (or any non-public host) won't load when the
  * recipient's mail client fetches it, but an inline attachment always renders.
+ * Only relevant for `logoLocalPath` (local dev) — a real `logoUrl` is
+ * referenced directly instead, see renderBrandedEmail below.
  */
-export function logoAttachment(logoPath: string | null): { filename: string; content: Buffer; cid: string }[] {
-  if (!logoPath) return [];
+export function logoAttachment(logoLocalPath: string | null): { filename: string; content: Buffer; cid: string }[] {
+  if (!logoLocalPath) return [];
   try {
-    return [{ filename: "logo.png", content: fs.readFileSync(logoPath), cid: "logo" }];
+    return [{ filename: "logo.png", content: fs.readFileSync(logoLocalPath), cid: "logo" }];
   } catch {
     return [];
   }
@@ -174,13 +188,15 @@ export async function renderBrandedEmail(
   key: string,
   vars: Record<string, string>
 ): Promise<{ subject: string; html: string; attachments: { filename: string; content: Buffer; cid: string }[] }> {
-  const { siteName, logoPath, contactEmail, contactPhone } = await getBranding();
+  const { siteName, logoUrl, logoLocalPath, contactEmail, contactPhone } = await getBranding();
   const template = await resolveEmailTemplate(key);
   const body = renderTemplate(template.bodyHtml, { siteName, ...vars });
 
-  const headerBrand = logoPath
-    ? `<img src="cid:logo" alt="${siteName}" style="max-height:40px;max-width:200px;" />`
-    : `<span style="color:#2563ff;font-size:22px;font-weight:700;">${siteName}</span>`;
+  const headerBrand = logoUrl
+    ? `<img src="${logoUrl}" alt="${siteName}" style="max-height:40px;max-width:200px;" />`
+    : logoLocalPath
+      ? `<img src="cid:logo" alt="${siteName}" style="max-height:40px;max-width:200px;" />`
+      : `<span style="color:#2563ff;font-size:22px;font-weight:700;">${siteName}</span>`;
 
   const shell = await resolveEmailTemplate("EMAIL_SHELL");
   return {
@@ -194,6 +210,6 @@ export async function renderBrandedEmail(
       contactPhoneTel: contactPhone.replace(/[^+\d]/g, ""),
       year: String(new Date().getFullYear()),
     }),
-    attachments: logoAttachment(logoPath),
+    attachments: logoAttachment(logoLocalPath),
   };
 }

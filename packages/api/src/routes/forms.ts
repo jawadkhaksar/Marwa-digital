@@ -2,7 +2,6 @@ import { Router } from "express";
 import { z } from "zod";
 import multer from "multer";
 import crypto from "crypto";
-import fs from "fs";
 import path from "path";
 import { prisma } from "@marwa/db";
 import { getBlockDefinition, parseLayoutDocumentSafe, parseBlockProps, isValidPhone, type LayoutNode, type FormFieldDef } from "@marwa/builder";
@@ -11,6 +10,8 @@ import { formatZodError } from "../lib/zodError";
 import { formsLimiter, looksLikeBot, isAllowedImageUpload, type AllowedUploadKind } from "../lib/security";
 import { unifyContact, guessNameEmail } from "../lib/crm";
 import { dispatchTrigger } from "../services/workflowEngine";
+import { storeFile } from "../lib/storage";
+import { mimeTypeForExtension } from "../lib/mediaConversion";
 
 export const formsRouter = Router();
 
@@ -295,9 +296,6 @@ formsRouter.post("/submit", formsLimiter, async (req, res) => {
 // Max File Size/Allowed File Types on the field (checked after upload,
 // since multer's limits are fixed at construction time, not per-request)
 // can only tighten those further, never loosen them.
-const FORM_UPLOAD_DIR = path.join(process.cwd(), "uploads");
-fs.mkdirSync(FORM_UPLOAD_DIR, { recursive: true });
-
 const HARD_MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB ceiling regardless of field config
 const DEFAULT_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "pdf", "doc", "docx", "xls", "xlsx", "txt"];
 
@@ -369,8 +367,8 @@ formsRouter.post(
     }
 
     const filename = `form-${crypto.randomUUID()}.${ext}`;
-    fs.writeFileSync(path.join(FORM_UPLOAD_DIR, filename), req.file.buffer);
+    const url = await storeFile(filename, req.file.buffer, mimeTypeForExtension(ext));
 
-    res.status(201).json({ url: `/uploads/${filename}`, filename: req.file.originalname });
+    res.status(201).json({ url, filename: req.file.originalname });
   }
 );

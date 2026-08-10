@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
 import { prisma, type Prisma } from "@marwa/db";
+import { isBlobConfigured, storeFile, readStoredFile, deleteStoredFile, localUploadsDir } from "../lib/storage";
+import { mimeTypeForExtension } from "../lib/mediaConversion";
 
 // ── Backup & Disaster Recovery ──────────────────────────────────────────
 // No `pg_dump` binary is assumed to be installed/on PATH wherever this API
@@ -17,9 +19,14 @@ import { prisma, type Prisma } from "@marwa/db";
 // DUMP_MODELS lists every backed-up table in FK-safe dependency order
 // (parents before children) — restoreBackup replays creates in this same
 // order, and deletes in the reverse of it.
+//
+// The generated zip archive ITSELF also has to go through storage.ts's
+// Blob-or-local abstraction, same as any other uploaded file — on Vercel,
+// a zip written to a local "backups/" folder would vanish the moment this
+// request ends, same reason media uploads moved to Blob.
 
 const BACKUP_DIR = path.join(process.cwd(), "backups");
-const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+const UPLOADS_DIR = localUploadsDir();
 
 function ensureBackupDir() {
   if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -99,6 +106,45 @@ async function dumpPosts(organizationId?: string) {
   return posts.map((p) => ({ ...p, categoryIds: p.categories.map((c) => c.id), tagIds: p.tags.map((t) => t.id), categories: undefined, tags: undefined }));
 }
 
+/**
+ * Bundles every MediaAsset's actual bytes into `uploads/<filename>` in the
+ * zip. In Blob mode there's no local folder to just copy — MediaAsset rows
+ * are the authoritative list of what's stored, so each one is fetched back
+ * from its Blob URL individually (best-effort per file: one unreachable
+ * asset shouldn't abort the whole backup).
+ */
+async function bundleUploads(zip: AdmZip): Promise<void> {
+  if (isBlobConfigured()) {
+    const assets = await prisma.mediaAsset.findMany({ select: { url: true } });
+    for (const { url } of assets) {
+      if (!url.startsWith("http")) continue;
+      try {
+        const bytes = await readStoredFile(url);
+        zip.addFile(`uploads/${path.basename(new URL(url).pathname)}`, bytes);
+      } catch {
+        /* best-effort — a single missing/unreachable blob shouldn't abort the backup */
+      }
+    }
+    return;
+  }
+  if (fs.existsSync(UPLOADS_DIR)) zip.addLocalFolder(UPLOADS_DIR, "uploads");
+}
+
+/**
+ * Replays `uploads/*` zip entries back into storage — Blob (re-uploaded
+ * under the exact same filename, so URLs referenced elsewhere in the
+ * restored data.json/Page.layout/Post.content keep resolving correctly,
+ * since storeFile() with a fixed filename is deterministic) or local disk.
+ */
+async function restoreUploads(zip: AdmZip): Promise<void> {
+  const uploadEntries = zip.getEntries().filter((e) => e.entryName.startsWith("uploads/") && !e.isDirectory);
+  for (const entry of uploadEntries) {
+    const filename = entry.entryName.replace(/^uploads\//, "");
+    const ext = path.extname(filename).slice(1);
+    await storeFile(filename, entry.getData(), mimeTypeForExtension(ext));
+  }
+}
+
 export interface BackupResult {
   filename: string;
   storagePath: string;
@@ -106,7 +152,6 @@ export interface BackupResult {
 }
 
 export async function generateBackup(type: "FULL" | "DATABASE_ONLY" | "UPLOADS_ONLY", organizationId?: string): Promise<BackupResult> {
-  ensureBackupDir();
   const zip = new AdmZip();
 
   if (type !== "UPLOADS_ONLY") {
@@ -128,25 +173,43 @@ export async function generateBackup(type: "FULL" | "DATABASE_ONLY" | "UPLOADS_O
     zip.addFile("data.json", Buffer.from(JSON.stringify({ createdAt: new Date().toISOString(), models: dump }, null, 2)));
   }
 
-  if (type !== "DATABASE_ONLY" && fs.existsSync(UPLOADS_DIR)) {
-    zip.addLocalFolder(UPLOADS_DIR, "uploads");
-  }
+  if (type !== "DATABASE_ONLY") await bundleUploads(zip);
 
   const filename = `backup-${type.toLowerCase()}-${Date.now()}.zip`;
-  const storagePath = path.join(BACKUP_DIR, filename);
-  zip.writeZip(storagePath);
-  const fileSize = fs.statSync(storagePath).size;
+  const zipBuffer = zip.toBuffer();
 
-  return { filename, storagePath, fileSize };
+  if (isBlobConfigured()) {
+    const storagePath = await storeFile(filename, zipBuffer, "application/zip");
+    return { filename, storagePath, fileSize: zipBuffer.length };
+  }
+
+  ensureBackupDir();
+  const storagePath = path.join(BACKUP_DIR, filename);
+  fs.writeFileSync(storagePath, zipBuffer);
+  return { filename, storagePath, fileSize: zipBuffer.length };
 }
 
-export function backupFilePath(storagePath: string): string {
-  return storagePath;
+/** Reads a backup archive's bytes back, whether `storagePath` is a Blob URL or a local path. */
+export async function readBackupFile(storagePath: string): Promise<Buffer> {
+  return readStoredFile(storagePath);
+}
+
+/** True if the backup file still exists — a local path is checked on disk; a Blob URL is assumed to exist (its own fetch will surface a real error if not). */
+export function backupFileExists(storagePath: string): boolean {
+  return storagePath.startsWith("http") ? true : fs.existsSync(storagePath);
+}
+
+export async function deleteBackupFile(storagePath: string): Promise<void> {
+  if (storagePath.startsWith("http")) {
+    await deleteStoredFile(storagePath);
+  } else if (fs.existsSync(storagePath)) {
+    fs.unlinkSync(storagePath);
+  }
 }
 
 export async function restoreBackup(storagePath: string): Promise<void> {
-  if (!fs.existsSync(storagePath)) throw new Error("Backup file is missing from disk");
-  const zip = new AdmZip(storagePath);
+  const zipBuffer = await readStoredFile(storagePath);
+  const zip = new AdmZip(zipBuffer);
 
   const dataEntry = zip.getEntry("data.json");
   if (dataEntry) {
@@ -154,15 +217,7 @@ export async function restoreBackup(storagePath: string): Promise<void> {
     await restoreModels(parsed.models);
   }
 
-  const uploadEntries = zip.getEntries().filter((e) => e.entryName.startsWith("uploads/") && !e.isDirectory);
-  if (uploadEntries.length > 0) {
-    if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    for (const entry of uploadEntries) {
-      const target = path.join(UPLOADS_DIR, entry.entryName.replace(/^uploads\//, ""));
-      fs.mkdirSync(path.dirname(target), { recursive: true });
-      fs.writeFileSync(target, entry.getData());
-    }
-  }
+  await restoreUploads(zip);
 }
 
 async function restoreModels(models: Record<string, Record<string, unknown>[]>): Promise<void> {

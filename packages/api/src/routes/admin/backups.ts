@@ -1,9 +1,8 @@
-import fs from "fs";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "@marwa/db";
 import { formatZodError } from "../../lib/zodError";
-import { generateBackup, restoreBackup } from "../../services/backupService";
+import { generateBackup, restoreBackup, backupFileExists, readBackupFile, deleteBackupFile } from "../../services/backupService";
 import type { TenantRequest } from "../../middleware/tenant";
 
 export const adminBackupsRouter = Router();
@@ -71,15 +70,21 @@ adminBackupsRouter.post("/generate", async (req: TenantRequest, res) => {
 adminBackupsRouter.get("/:id/download", async (req, res) => {
   const backup = await prisma.systemBackup.findUnique({ where: { id: req.params.id } });
   if (!backup) return res.status(404).json({ error: "Backup not found" });
-  if (!fs.existsSync(backup.storagePath)) return res.status(410).json({ error: "Backup file no longer exists on disk" });
+  if (!backupFileExists(backup.storagePath)) return res.status(410).json({ error: "Backup file no longer exists" });
 
-  res.download(backup.storagePath, backup.filename);
+  // Proxied through the API (rather than a redirect straight to the Blob
+  // URL) so the browser sees this admin-only download with the backup's
+  // real filename regardless of where it's actually stored.
+  const bytes = await readBackupFile(backup.storagePath);
+  res.setHeader("Content-Type", "application/zip");
+  res.setHeader("Content-Disposition", `attachment; filename="${backup.filename}"`);
+  res.send(bytes);
 });
 
 adminBackupsRouter.post("/:id/restore", async (req, res) => {
   const backup = await prisma.systemBackup.findUnique({ where: { id: req.params.id } });
   if (!backup) return res.status(404).json({ error: "Backup not found" });
-  if (!fs.existsSync(backup.storagePath)) return res.status(410).json({ error: "Backup file no longer exists on disk" });
+  if (!backupFileExists(backup.storagePath)) return res.status(410).json({ error: "Backup file no longer exists" });
 
   await restoreBackup(backup.storagePath);
   res.json({ ok: true, restoredFrom: backup.filename });
@@ -89,7 +94,7 @@ adminBackupsRouter.delete("/:id", async (req, res) => {
   const backup = await prisma.systemBackup.findUnique({ where: { id: req.params.id } });
   if (!backup) return res.status(404).json({ error: "Backup not found" });
 
-  if (fs.existsSync(backup.storagePath)) fs.unlinkSync(backup.storagePath);
+  await deleteBackupFile(backup.storagePath);
   await prisma.systemBackup.delete({ where: { id: req.params.id } });
   res.status(204).end();
 });
