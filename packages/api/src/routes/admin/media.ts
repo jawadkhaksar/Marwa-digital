@@ -59,6 +59,12 @@ adminMediaRouter.get("/storage-status", async (_req, res) => {
     mode: blob ? "vercel-blob" : "local-disk",
     tokenPresent: blob,
     tokenSource: blobTokenSource(),
+    // Variable NAMES only (never values) — the difference between "the
+    // store isn't connected" and "it's connected under a name we don't
+    // recognise" is otherwise invisible from outside the deployment.
+    candidateVars: Object.keys(process.env)
+      .filter((k) => /BLOB|STORAGE|READ_WRITE/i.test(k))
+      .sort(),
     writable,
     error,
     warning: blob ? null : "Uploads are being written to local disk. On a serverless host that filesystem is discarded after each request, so files will not persist.",

@@ -1,5 +1,5 @@
 import {
-  T, IMG, GLOW, section, cols, card, h, p, eyebrow, button, iconBox, image, doc, n, reveal, spacer,
+  T, IMG, GLOW, section, cols, card, h, p, eyebrow, button, image, doc, n, reveal, spacer,
   pill, splitHeading, advHeading, glowCard, step, marquee, statement, stackedImages, statTile, quote, row,
 } from "../kit.mjs";
 
