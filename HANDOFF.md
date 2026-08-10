@@ -118,7 +118,9 @@ Then, found during the audit:
 
 ## Known issues worth your attention
 
-**Blog archive and header nav render empty in raw HTML.** Both fetch client-side, so real visitors see them fine — but search engines and social preview crawlers see an empty page. For a site whose whole pitch is SEO, `/blog` should render its posts server-side. Worth fixing; it's a change to `TemplateA`/`SiteHeader`, not a quick config toggle, so I didn't attempt it unattended.
+**Header navigation renders empty in raw HTML.** `SiteHeader` fetches its menu client-side, so visitors see it fine but crawlers don't. I fixed the equivalent problem on `/blog` (see below) but deliberately left this one: `SiteHeader` has 15 call sites and Theme Builder override logic, so refactoring it unverified overnight risked breaking the header on every page. The SEO cost is small in practice — `sitemap.xml` already exposes every page for crawl discovery. Worth doing properly in daylight.
+
+*(Fixed during the session: `/blog` had this same problem and now server-renders its first page of posts, featured article and categories, while keeping search, filtering and load-more fully interactive.)*
 
 **Content is placeholder.** Client names, metrics and testimonials are invented. Replace before promoting the site.
 
