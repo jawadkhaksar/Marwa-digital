@@ -24,24 +24,25 @@
 // committed file, not generated output, or no function is created at all
 // (every route then falls through to the static public/ placeholder).
 import { build } from "esbuild";
-import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
-const apiPkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
-const dbPkg = JSON.parse(readFileSync(path.join(root, "..", "db", "package.json"), "utf8"));
-const builderPkg = JSON.parse(readFileSync(path.join(root, "..", "builder", "package.json"), "utf8"));
-
-// Every real npm package any bundled workspace source might import, minus
-// the workspace packages themselves (those are what we WANT inlined).
-const external = [
-  ...Object.keys(apiPkg.dependencies ?? {}),
-  ...Object.keys(dbPkg.dependencies ?? {}),
-  ...Object.keys(builderPkg.dependencies ?? {}),
-].filter((name) => !name.startsWith("@marwa/"));
+// Bundle EVERYTHING except packages that genuinely can't be inlined —
+// Prisma's generated client (it loads a platform-specific native query
+// engine binary by path at runtime) and sharp (native bindings). Those two
+// stay external and get required normally from node_modules, which
+// Vercel's file tracer handles.
+//
+// Deliberately NOT externalizing ordinary npm dependencies: several of
+// them (otplib's @scure/base, @vercel/blob, zod, express-rate-limit,
+// libphonenumber-js…) ship as ESM-only, and requiring ESM from the
+// CommonJS output Vercel's runtime expects fails with ERR_REQUIRE_ESM.
+// Letting esbuild inline and down-convert them removes that whole class of
+// runtime failure instead of pinning packages one at a time.
+const external = ["@prisma/client", ".prisma/client", "sharp"];
 
 await build({
   entryPoints: [path.join(root, "src", "server.ts")],
