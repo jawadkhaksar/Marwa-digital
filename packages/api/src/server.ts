@@ -2,6 +2,7 @@ import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import net from "net";
 import path from "path";
 // Patches Express so rejected promises in async route handlers are forwarded
 // to the error-handling middleware below instead of crashing the process.
@@ -124,18 +125,52 @@ app.get("/health/db", async (_req, res) => {
       return "UNKNOWN";
     };
     let host: string | null = null;
+    let sslmode: string | null = null;
+    let port: string | null = null;
+    let hasPassword = false;
     try {
-      host = new URL(process.env.DATABASE_URL ?? "").host || null;
+      const u = new URL(process.env.DATABASE_URL ?? "");
+      host = u.host || null;
+      // Neon refuses non-TLS connections, so a URL that lost its query string
+      // in transit fails exactly like an unreachable host.
+      sslmode = u.searchParams.get("sslmode");
+      port = u.port || "(default)";
+      hasPassword = Boolean(u.password);
     } catch {
       host = process.env.DATABASE_URL ? "unparseable" : "unset";
     }
+
+    // Distinguish "the network can't get there" from "postgres rejected us":
+    // a raw socket to the same host proves whether egress works at all.
+    const tcp = await new Promise<string>((resolve) => {
+      try {
+        const socket = new net.Socket();
+        const done = (r: string) => {
+          socket.destroy();
+          resolve(r);
+        };
+        socket.setTimeout(4000);
+        socket.once("connect", () => done("open"));
+        socket.once("timeout", () => done("timeout"));
+        socket.once("error", (e: NodeJS.ErrnoException) => done(e.code ?? "error"));
+        socket.connect(Number(process.env.PGPORT ?? 5432), (host ?? "").split(":")[0]);
+      } catch {
+        resolve("threw");
+      }
+    });
+
     res.status(503).json({
       ok: false,
       code,
       cause: classify(),
       name: (err as Error).name,
       host,
+      port,
+      sslmode,
+      hasPassword,
       pooled: host ? host.includes("-pooler") : null,
+      tcp,
+      directUrlSet: Boolean(process.env.DIRECT_URL),
       ms: Date.now() - started,
     });
   }
