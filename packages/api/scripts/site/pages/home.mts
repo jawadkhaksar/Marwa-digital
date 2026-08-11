@@ -16,21 +16,21 @@ export function homeLayout() {
       [
         heroSlider([
           {
-            image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1920&q=80",
+            image: "https://images.unsplash.com/photo-1639762681057-408e52192e55?auto=format&fit=crop&w=1920&q=80",
             heading: "AI Software That Cuts Costs And Grows Your Business Faster",
             subheading: "Custom AI tools and automation that remove manual work, shrink operating costs and let a small team deliver like a large one.",
             buttonLabel: "Explore AI development",
             buttonUrl: "/services#product-ux",
           },
           {
-            image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1920&q=80",
+            image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1920&q=80",
             heading: "Web Design & Development That Turns Traffic Into Revenue",
             subheading: "High-performance websites engineered around how your customers actually buy — fast, accessible, and built to convert from day one.",
             buttonLabel: "See web development",
             buttonUrl: "/services#web-development",
           },
           {
-            image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1920&q=80",
+            image: "https://images.unsplash.com/photo-1618172193763-c511deb635ca?auto=format&fit=crop&w=1920&q=80",
             heading: "SEO Services That Put You On Page One And Keep You There",
             subheading: "Technical SEO, content strategy and digital PR that compound month after month — measured on pipeline, never on impressions.",
             buttonLabel: "Grow with SEO",
