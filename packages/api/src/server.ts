@@ -103,7 +103,19 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
  * Deliberately reports no connection string, credentials, or raw driver text;
  * the code plus the host is the whole diagnostic surface.
  */
-app.get("/health/db", async (_req, res) => {
+app.get("/health/db", async (req, res) => {
+  // Gated behind the same shared secret the cron routes use: the response
+  // names the database host and connection shape, which is not something to
+  // hand to anonymous callers. requireAdmin can't be used here — admin auth
+  // needs a database lookup, which is exactly what this endpoint exists to
+  // diagnose when it's failing.
+  const secret = process.env.CRON_SECRET;
+  const supplied = req.get("x-health-secret") ?? String(req.query.secret ?? "");
+  if (!secret || supplied !== secret) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+
   const started = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
