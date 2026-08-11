@@ -301,8 +301,20 @@ function applyResponsiveFields(cssVars: CSSProperties, fields: ResponsiveStyleFi
   if (fields.left) cssVars.left = fields.left;
   if (fields.overflow) cssVars.overflow = fields.overflow;
 
-  if (fields.direction) cssVars.flexDirection = fields.direction;
+  // Same omission as the Min/Max size fields above: `display` was wired into
+  // the media-query and hover paths but not the base inline one, so the
+  // Layout panel's Block/Flex/Grid/None selector did nothing at the desktop
+  // breakpoint. Block and None have no equivalent block-level prop anywhere,
+  // so without this they were unreachable entirely.
+  if (fields.display) cssVars.display = fields.display;
+  // `flexDirection` is the key the Layout panel writes; `direction` is the
+  // older field name kept for layouts authored before it. The media-query
+  // path already accepts either — this one only read the legacy name.
+  if (fields.flexDirection || fields.direction) cssVars.flexDirection = fields.flexDirection || fields.direction;
   if (fields.textDirection) cssVars.direction = fields.textDirection;
+  // Accepts either name for the same reason flexDirection does above, and
+  // matching how the media-query path already reads it.
+  if (fields.flexWrap || fields.wrap) cssVars.flexWrap = (fields.flexWrap || fields.wrap) as CSSProperties["flexWrap"];
   if (fields.justifyContent) cssVars.justifyContent = fields.justifyContent;
   if (fields.alignItems) cssVars.alignItems = fields.alignItems;
   if (fields.gap) cssVars.gap = fields.gap;

@@ -312,13 +312,20 @@ function Section({
   // specific, block-aware setting.
   const style: CSSProperties = {
     ...wrapperProps?.style,
-    display: isGrid ? "grid" : "flex",
-    flexDirection: isGrid ? undefined : direction,
+    // Each of these falls back to the block's own Layout-tab value but yields
+    // to an explicit one from the generic Layout panel, for the same reason as
+    // width below: both are user settings, but the panel value is only present
+    // when the user actually touched that control, so it is the later and more
+    // specific instruction. Written after the spread, so — as with width and
+    // minWidth — the fallback has to re-supply the wrapper value rather than
+    // resolve to undefined, or an untouched control would wipe the panel's.
+    display: (wrapperProps?.style?.display as CSSProperties["display"]) ?? (isGrid ? "grid" : "flex"),
+    flexDirection: (wrapperProps?.style?.flexDirection as CSSProperties["flexDirection"]) ?? (isGrid ? undefined : direction),
     gridAutoFlow: isGrid ? "row" : undefined,
-    justifyContent,
-    alignItems,
-    gap: gap || undefined,
-    flexWrap: isGrid ? undefined : wrap,
+    justifyContent: (wrapperProps?.style?.justifyContent as CSSProperties["justifyContent"]) ?? justifyContent,
+    alignItems: (wrapperProps?.style?.alignItems as CSSProperties["alignItems"]) ?? alignItems,
+    gap: (wrapperProps?.style?.gap as CSSProperties["gap"]) ?? (gap || undefined),
+    flexWrap: (wrapperProps?.style?.flexWrap as CSSProperties["flexWrap"]) ?? (isGrid ? undefined : wrap),
     // `|| wrapperProps` rather than `|| undefined`: these keys are written
     // after the `...wrapperProps?.style` spread above, so a bare `undefined`
     // doesn't leave the spread value in place — it overwrites it with
