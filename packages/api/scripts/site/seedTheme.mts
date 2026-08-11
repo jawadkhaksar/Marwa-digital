@@ -2,7 +2,7 @@
 // (SiteTemplate rows), so the chrome is editable in the builder exactly like
 // any page — rather than living in hard-coded React that only a developer
 // can change. Idempotent by title.
-import { T, n, uid } from "./kit.mjs";
+import { T, n } from "./kit.mjs";
 import type { LayoutNode } from "@marwa/builder";
 
 function arg(name: string, fallback?: string): string {
