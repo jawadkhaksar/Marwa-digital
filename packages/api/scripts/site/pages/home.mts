@@ -1,4 +1,4 @@
-import { GLOW, IMG, T, advHeading, button, card, cols, doc, eyebrow, glowCard, h, image, marquee, n, p, pill, quote, reveal, row, section, spacer, splitHeading, stackedImages, statTile, statement, step, tickList } from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, card, cols, doc, eyebrow, glowCard, h, heroSlider, image, marquee, n, p, pill, quote, reveal, row, section, spacer, splitHeading, statTile, statement, step, tickList } from "../kit.mjs";
 
 export const homeMeta = {
   slug: "home",
@@ -11,30 +11,55 @@ export const homeMeta = {
 
 export function homeLayout() {
   return doc([
-    // 1 ── Hero: asymmetric split, copy left / tilted photo stack right
+    // 1 ── Hero carousel: three slides, three different search intents
+    section(
+      [
+        heroSlider([
+          {
+            image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1920&q=80",
+            heading: "AI Software That Cuts Costs And Grows Your Business Faster",
+            subheading: "Custom AI tools and automation that remove manual work, shrink operating costs and let a small team deliver like a large one.",
+            buttonLabel: "Explore AI development",
+            buttonUrl: "/services#product-ux",
+          },
+          {
+            image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1920&q=80",
+            heading: "Web Design & Development That Turns Traffic Into Revenue",
+            subheading: "High-performance websites engineered around how your customers actually buy — fast, accessible, and built to convert from day one.",
+            buttonLabel: "See web development",
+            buttonUrl: "/services#web-development",
+          },
+          {
+            image: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1920&q=80",
+            heading: "SEO Services That Put You On Page One And Keep You There",
+            subheading: "Technical SEO, content strategy and digital PR that compound month after month — measured on pipeline, never on impressions.",
+            buttonLabel: "Grow with SEO",
+            buttonUrl: "/services#seo",
+          },
+        ]),
+      ],
+      { id: "hero", padY: "0px", background: "#06091a", style: { paddingLeft: "0px", paddingRight: "0px", mobile: { paddingLeft: "0px", paddingRight: "0px" } }, width: "100%" }
+    ),
+
+    // 1b ── Positioning strip directly under the carousel
     section(
       [
         cols(
           [
-            n("Section", { layoutMode: "flex", direction: "column", gap: "22px", contentWidth: "full", background: "transparent", justifyContent: "center", alignItems: "flex-start" }, {
+            n("Section", { layoutMode: "flex", direction: "column", gap: "20px", contentWidth: "full", background: "transparent", justifyContent: "center", alignItems: "flex-start" }, {
               children: [
                 pill("Full-service digital agency"),
-                splitHeading("We build websites that win attention —", " and keep it.", "left", "h1"),
-                p(
-                  "Strategy, design, engineering and SEO under one roof. We ship sites that load fast, rank well and turn visitors into revenue — then we prove it with numbers.",
-                  { fontSize: "1.12rem", maxWidth: "540px" }
-                ),
+                splitHeading("We build software and websites that win attention —", " and keep it.", "left", "h2"),
+                p("Strategy, design, engineering and SEO under one roof. We ship products that load fast, rank well and turn visitors into revenue — then we prove it with numbers.", { fontSize: "1.1rem", maxWidth: "540px" }),
                 row([button("Start a project", "/contact"), button("View our work", "/case-studies", "ghost")]),
-                spacer("10px"),
-                cols([statTile("120+", "Projects"), statTile("98%", "Retention", T.violet), statTile("14", "Countries", "#22c55e")], { count: 3, gap: "14px" }),
               ],
             }),
-            stackedImages([IMG.heroTeam, IMG.workspace, IMG.studio]),
+            cols([statTile("120+", "Projects"), statTile("98%", "Retention", T.violet), statTile("14", "Countries", "#22c55e"), statTile("9.4/10", "Client rating", "#f59e0b")], { count: 2, gap: "16px" }),
           ],
-          { count: 2, ratio: "66-33", gap: "56px", align: "center" }
+          { count: 2, gap: "56px", align: "center" }
         ),
       ],
-      { id: "hero", padY: "128px", background: GLOW.topLeft, style: { minHeight: "82vh", justifyContent: "center" } }
+      { padY: "84px", background: GLOW.topLeft }
     ),
 
     // 2 ── Moving keyword band

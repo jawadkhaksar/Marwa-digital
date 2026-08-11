@@ -721,6 +721,57 @@ export function tickList(items: string[], accent = T.accent): LayoutNode {
   );
 }
 
+/**
+ * Full-width hero carousel.
+ *
+ * Each slide carries its own headline, supporting line, CTA and background
+ * image, so the three rotate through different search intents rather than
+ * restating one message three times. A dark gradient scrim is applied via
+ * the section behind it — the imagery is busy enough that white type needs
+ * guaranteed contrast rather than luck.
+ */
+export interface HeroSlide {
+  image: string;
+  heading: string;
+  subheading: string;
+  buttonLabel: string;
+  buttonUrl: string;
+}
+
+export function heroSlider(slides: HeroSlide[]): LayoutNode {
+  return n(
+    "Slider",
+    {
+      slides,
+      itemsDesktop: 1,
+      itemsTablet: 1,
+      itemsMobile: 1,
+      gap: "0px",
+      aspectRatio: "21/9",
+      autoplay: true,
+      autoplaySpeed: 6000,
+      loop: true,
+      showArrows: true,
+      showDots: true,
+      pauseOnHover: true,
+      transition: "fade",
+      arrowStyle: "circle",
+      dotStyle: "lines",
+      color: "#ffffff",
+      // The scrim: dark enough that a headline stays legible over any of
+      // the three photographs, weighted to the left where the type sits.
+      background: "linear-gradient(90deg, rgba(6,9,25,0.86) 0%, rgba(6,9,25,0.66) 45%, rgba(6,9,25,0.30) 100%)",
+      borderRadius: "0px",
+      arrowColor: "#ffffff",
+      arrowBackground: "rgba(255,255,255,0.14)",
+      arrowHoverBackground: T.accent,
+      dotColor: "rgba(255,255,255,0.34)",
+      dotActiveColor: "#ffffff",
+    },
+    { timelines: revealScale(0) }
+  );
+}
+
 /** Horizontal flex row that doesn't force a grid — used for button/stat clusters. */
 export function row(children: LayoutNode[], justify: "flex-start" | "center" = "flex-start", gap = "14px"): LayoutNode {
   return n(
