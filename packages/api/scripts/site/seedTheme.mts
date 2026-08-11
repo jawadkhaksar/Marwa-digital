@@ -47,11 +47,11 @@ function navLink(label: string, href: string): LayoutNode {
 }
 
 function headerLayout() {
-  const logo = n("SiteLogo", { link: "site", align: "left", imageMaxWidth: "138px" });
+  const logo = n("SiteLogo", { link: "site", align: "left", imageMaxWidth: "132px" });
 
   const nav = n(
     "Section",
-    { layoutMode: "flex", direction: "row", gap: "4px", wrap: "wrap", alignItems: "center", justifyContent: "center", contentWidth: "full", background: "transparent" },
+    { layoutMode: "flex", direction: "row", gap: "4px", wrap: "wrap", alignItems: "center", justifyContent: "flex-end", contentWidth: "full", background: "transparent" },
     {
       children: [
         navLink("Home", "/home"),
@@ -99,10 +99,16 @@ function headerLayout() {
     }
   );
 
+  const rightCluster = n(
+    "Section",
+    { layoutMode: "flex", direction: "row", gap: "18px", wrap: "wrap", alignItems: "center", justifyContent: "flex-end", contentWidth: "full", background: "transparent" },
+    { children: [nav, cta] }
+  );
+
   const bar = n(
     "Columns",
-    { columnCount: 3, ratio: "25-75", gap: "20px", layoutMode: "grid", alignItems: "center", contentWidth: "boxed", width: T.maxWidth },
-    { children: [logo, nav, cta] }
+    { columnCount: 2, ratio: "25-75", gap: "20px", layoutMode: "grid", alignItems: "center", contentWidth: "boxed", width: T.maxWidth },
+    { children: [logo, rightCluster] }
   );
 
   return {
@@ -123,8 +129,8 @@ function headerLayout() {
           children: [bar],
           name: "site-header",
           style: {
-            paddingTop: "10px",
-            paddingBottom: "10px",
+            paddingTop: "8px",
+            paddingBottom: "8px",
             paddingLeft: "24px",
             paddingRight: "24px",
             borderStyle: "solid",

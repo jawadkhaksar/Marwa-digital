@@ -16,7 +16,7 @@ export function homeLayout() {
       [
         heroSlider([
           {
-            image: "https://images.unsplash.com/photo-1635776062360-af423602aff3?auto=format&fit=crop&w=1920&q=80",
+            image: "https://images.unsplash.com/photo-1618331833071-ce81bd50d300?auto=format&fit=crop&w=1920&q=80",
             heading: "Custom Web & Mobile App Development",
             subheading: "From custom web and mobile applications to AI-powered solutions and CMS platforms, our development team builds scalable digital products tailored to your business.",
             buttonLabel: "Explore more",
@@ -25,7 +25,7 @@ export function homeLayout() {
             buttonUrl2: "/contact",
           },
           {
-            image: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1920&q=80",
+            image: "https://images.unsplash.com/photo-1620121478247-ec786b9be2fa?auto=format&fit=crop&w=1920&q=80",
             heading: "Full-Stack Development & AI Solutions",
             subheading: "From custom web and mobile applications to AI-powered solutions and CMS platforms, our development team builds scalable digital products tailored to your business.",
             buttonLabel: "Explore more",

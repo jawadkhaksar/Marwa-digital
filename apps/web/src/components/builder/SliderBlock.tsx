@@ -10,6 +10,7 @@ import { hashString, ArrowButton, Dots } from "@/components/builder/carouselPrim
 
 function SlideCard({
   slide,
+  isActive = true,
   aspectRatio,
   contentAlign,
   contentSize,
@@ -30,6 +31,7 @@ function SlideCard({
   boxShadow,
 }: {
   slide: SliderSlide;
+  isActive?: boolean;
   aspectRatio?: string;
   contentAlign?: "left" | "center" | "right";
   contentSize?: "default" | "hero";
@@ -63,6 +65,14 @@ function SlideCard({
         : "items-center text-center";
   const clamp = (lines: number): CSSProperties =>
     isHero ? {} : { display: "-webkit-box", WebkitLineClamp: lines, WebkitBoxOrient: "vertical" };
+  const enter = (delayMs: number): CSSProperties =>
+    isHero
+      ? {
+          opacity: isActive ? 1 : 0,
+          transform: isActive ? "translateY(0)" : "translateY(26px)",
+          transition: `opacity .7s cubic-bezier(.22,1,.36,1) ${delayMs}ms, transform .7s cubic-bezier(.22,1,.36,1) ${delayMs}ms`,
+        }
+      : {};
   const cardStyle: CSSProperties = {
     aspectRatio: aspectRatio || "16/9",
     borderTopLeftRadius: borderRadiusTopLeft || borderRadius || "12px",
@@ -93,7 +103,7 @@ function SlideCard({
               className={`overflow-hidden text-ellipsis font-extrabold leading-[1.08] tracking-tight ${
                 isHero ? "max-w-2xl text-3xl md:text-5xl lg:text-6xl" : "w-full text-xl md:text-3xl"
               }`}
-              style={clamp(2)}
+              style={{ ...clamp(2), ...enter(120) }}
             >
               {slide.heading}
             </h2>
@@ -103,13 +113,13 @@ function SlideCard({
               className={`overflow-hidden text-ellipsis opacity-90 ${
                 isHero ? "max-w-xl text-sm leading-relaxed md:text-base lg:text-lg" : "w-full max-w-xl text-xs md:text-sm"
               }`}
-              style={clamp(3)}
+              style={{ ...clamp(3), ...enter(240) }}
             >
               {slide.subheading}
             </p>
           )}
           {(slide.buttonLabel || slide.buttonLabel2) && (
-            <div className={`flex flex-wrap gap-3 ${contentAlign === "right" ? "justify-end" : contentAlign === "left" ? "justify-start" : "justify-center"}`}>
+            <div className={`flex flex-wrap gap-3 ${contentAlign === "right" ? "justify-end" : contentAlign === "left" ? "justify-start" : "justify-center"}`} style={enter(360)}>
               {slide.buttonLabel && slide.buttonUrl && (
                 <a
                   href={slide.buttonUrl}
@@ -390,7 +400,7 @@ function SlideSlider({
         <div className="flex" style={{ gap, marginLeft: `-${gap}` }}>
           {slides.map((slide, i) => (
             <div key={i} className="embla-slide" style={{ paddingLeft: gap }}>
-              <SlideCard slide={slide} {...cardProps} />
+              <SlideCard slide={slide} isActive={i === selectedIndex} {...cardProps} />
             </div>
           ))}
         </div>
@@ -465,7 +475,7 @@ function FadeSlider({
       >
         {slides.map((slide, i) => (
           <div key={i} className="absolute inset-0 transition-opacity duration-700" style={{ opacity: i === index ? 1 : 0, pointerEvents: i === index ? "auto" : "none" }}>
-            <SlideCard slide={slide} {...cardProps} />
+            <SlideCard slide={slide} isActive={i === index} {...cardProps} />
           </div>
         ))}
       </div>
