@@ -15,6 +15,11 @@ interface ThemeContextValue {
 // script — see NO_FLASH_THEME_SCRIPT below — can build the exact same
 // localStorage key without duplicating the literal string.
 export const STORAGE_KEY = "theme";
+
+// The site ships light. Declared once so the client hook, the server render
+// and the no-flash inline script below can never disagree — a mismatch there
+// shows up as a visible theme flash on first paint.
+const DEFAULT_THEME: ResolvedTheme = "light";
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function systemTheme(): ResolvedTheme {
@@ -114,4 +119,4 @@ export function useTheme(): ThemeContextValue {
 }
 
 /** Inlined into the root layout's own plain `<script>` tag — see the doc comment above. */
-export const NO_FLASH_THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}")||"dark";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;document.documentElement.classList.add(r);}catch(e){}})();`;
+export const NO_FLASH_THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}")||"light";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;document.documentElement.classList.add(r);}catch(e){}})();`;

@@ -1,4 +1,4 @@
-import { GLOW, T, advHeading, button, card, cols, doc, eyebrow, glowCard, h, n, p, pill, reveal, section, splitHeading } from "../kit.mjs";
+import { GLOW, T, advHeading, button, card, cols, doc, eyebrow, glowCard, h, n, p, pill, reveal, row, section, splitHeading, tickList } from "../kit.mjs";
 
 export const pricingMeta = {
   slug: "pricing",
@@ -15,18 +15,8 @@ function tier(name: string, price: string, note: string, features: string[], acc
       eyebrow(name),
       h(price, "h2", { fontSize: "clamp(1.9rem, 3vw, 2.5rem)" }),
       p(note),
-      n("Checklist", {
-        eyebrow: "",
-        title: "",
-        includedLabel: "Includes:",
-        includedItems: features,
-        excludedLabel: "",
-        excludedItems: [],
-        ctaLabel: featured ? "Get a proposal" : "Enquire",
-        ctaHref: "/contact",
-        containerBackground: "transparent",
-        containerBorderColor: "transparent",
-      }),
+      tickList(features, accent),
+      row([button(featured ? "Get a proposal" : "Enquire", "/contact", featured ? "primary" : "ghost")]),
     ],
     accent
   );

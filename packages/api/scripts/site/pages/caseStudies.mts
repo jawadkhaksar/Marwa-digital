@@ -1,4 +1,4 @@
-import { GLOW, IMG, T, advHeading, button, card, cols, doc, eyebrow, h, image, n, p, pill, reveal, row, section, splitHeading, stackedImages, statTile } from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, card, cols, doc, eyebrow, h, image, n, p, pill, reveal, row, section, splitHeading, stackedImages, statTile, tickList } from "../kit.mjs";
 
 export const caseStudiesMeta = {
   slug: "case-studies",
@@ -27,18 +27,8 @@ function study(
       h(headline),
       p(`<strong>The challenge.</strong> ${challenge}`),
       p(`<strong>What we did.</strong> ${approach}`),
-      n("Checklist", {
-        eyebrow: "",
-        title: "",
-        includedLabel: "Results:",
-        includedItems: results,
-        excludedLabel: "",
-        excludedItems: [],
-        ctaLabel: "Start a similar project",
-        ctaHref: "/contact",
-        containerBackground: "transparent",
-        containerBorderColor: "transparent",
-      }),
+      tickList(results, accent),
+      row([button("Start a similar project", "/contact", "ghost")]),
     ],
   });
   const pic = image(img, alt);

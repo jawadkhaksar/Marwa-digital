@@ -9,13 +9,17 @@
 
 import type { LayoutDocument, LayoutNode } from "@marwa/builder";
 
+// Light palette. Sections alternate pure white against a soft off-white so
+// bands separate without hard rules, with ink-dark text for contrast and the
+// brand blue/violet reserved for accents — used sparingly so they still read
+// as emphasis rather than decoration.
 export const T = {
-  bg: "#080b1f",
-  bgAlt: "#0c1029",
-  surface: "rgba(255,255,255,0.03)",
-  surfaceBorder: "rgba(255,255,255,0.10)",
-  text: "#ffffff",
-  muted: "rgba(255,255,255,0.68)",
+  bg: "#ffffff",
+  bgAlt: "#f5f7fb",
+  surface: "#ffffff",
+  surfaceBorder: "rgba(15,23,42,0.10)",
+  text: "#0b1220",
+  muted: "rgba(15,23,42,0.66)",
   accent: "#2563ff",
   accentStrong: "#1d4fd8",
   violet: "#7c3aed",
@@ -276,7 +280,7 @@ export function button(label: string, href: string, kind: "primary" | "ghost" = 
     color: T.text,
     borderStyle: "solid",
     borderWidth: "1px",
-    borderColor: "rgba(255,255,255,0.28)",
+    borderColor: "rgba(15,23,42,0.20)",
   };
   return n(
     "CTAButton",
@@ -295,9 +299,12 @@ export function button(label: string, href: string, kind: "primary" | "ghost" = 
     },
     {
       style: {
-        hoverTransitionDuration: "0.28s",
-        hoverTransitionEasing: "cubic-bezier(0.4, 0, 0.2, 1)",
-        hover: kind === "primary" ? { transform: "translateY(-3px)", boxShadow: "0 18px 44px rgba(124,58,237,0.46)" } : { background: "rgba(255,255,255,0.09)", borderColor: T.accent },
+        hoverTransitionDuration: "0.38s",
+        hoverTransitionEasing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        hover:
+          kind === "primary"
+            ? { transform: "translateY(-5px) scale(1.04)", boxShadow: "0 24px 52px rgba(37,99,255,0.48)" }
+            : { transform: "translateY(-5px) scale(1.04)", background: T.accent, borderColor: T.accent, color: "#ffffff" },
       },
     }
   );
@@ -352,13 +359,14 @@ export function card(children: LayoutNode[], accent = T.accent): LayoutNode {
         borderColor: T.surfaceBorder,
         borderRadius: T.radius,
         height: "100%",
-        hoverTransitionDuration: "0.32s",
-        hoverTransitionEasing: "cubic-bezier(0.4, 0, 0.2, 1)",
+        boxShadow: "0 1px 3px rgba(15,23,42,0.06)",
+        hoverTransitionDuration: "0.4s",
+        hoverTransitionEasing: "cubic-bezier(0.22, 1, 0.36, 1)",
         hover: {
-          transform: "translateY(-8px)",
+          transform: "translateY(-14px) scale(1.02)",
           borderColor: accent,
-          background: "rgba(255,255,255,0.06)",
-          boxShadow: `0 22px 54px rgba(2,6,23,0.55)`,
+          background: "#ffffff",
+          boxShadow: `0 30px 60px -12px ${accent}44, 0 18px 36px rgba(15,23,42,0.12)`,
         },
       },
     }
@@ -410,8 +418,9 @@ export function image(src: string, alt: string, radius = T.radius): LayoutNode {
     { src, alt, imageBorderRadiusTop: radius, imageBorderRadiusRight: radius, imageBorderRadiusBottom: radius, imageBorderRadiusLeft: radius, width: "100%" },
     {
       style: {
-        hoverTransitionDuration: "0.5s",
-        hover: { transform: "scale(1.03)" },
+        hoverTransitionDuration: "0.7s",
+        hoverTransitionEasing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        hover: { transform: "scale(1.06)" },
         overflow: "hidden",
       },
       timelines: [...revealScale(0.05), ...parallax(30)],
@@ -439,25 +448,29 @@ export function sectionIntro(kicker: string, title: string, body?: string): Layo
 // layered radial gradients give each section a light source, so sections
 // differ from one another without needing a photo behind every one.
 
+// Tinted washes rather than glows now that the ground is white — same job
+// (give each band its own light source so sections don't read as flat
+// blocks), but at the much lower opacity a light background needs before
+// colour starts to look like a stain.
 export const GLOW = {
-  topLeft: `radial-gradient(1100px 520px at 12% -10%, rgba(37,99,255,0.22), transparent 62%), ${T.bg}`,
-  topRight: `radial-gradient(1000px 480px at 88% -6%, rgba(124,58,237,0.20), transparent 60%), ${T.bg}`,
-  center: `radial-gradient(900px 520px at 50% 0%, rgba(37,99,255,0.16), transparent 62%), ${T.bgAlt}`,
-  dual: `radial-gradient(760px 420px at 8% 8%, rgba(37,99,255,0.20), transparent 58%), radial-gradient(760px 420px at 92% 92%, rgba(124,58,237,0.18), transparent 58%), ${T.bg}`,
-  soft: `radial-gradient(1200px 600px at 50% 110%, rgba(124,58,237,0.16), transparent 60%), ${T.bgAlt}`,
+  topLeft: `radial-gradient(1100px 520px at 12% -10%, rgba(37,99,255,0.10), transparent 62%), ${T.bg}`,
+  topRight: `radial-gradient(1000px 480px at 88% -6%, rgba(124,58,237,0.09), transparent 60%), ${T.bg}`,
+  center: `radial-gradient(900px 520px at 50% 0%, rgba(37,99,255,0.08), transparent 62%), ${T.bgAlt}`,
+  dual: `radial-gradient(760px 420px at 8% 8%, rgba(37,99,255,0.12), transparent 58%), radial-gradient(760px 420px at 92% 92%, rgba(124,58,237,0.10), transparent 58%), ${T.bg}`,
+  soft: `radial-gradient(1200px 600px at 50% 110%, rgba(124,58,237,0.09), transparent 60%), ${T.bgAlt}`,
 };
 
 /** Small capsule label — the "badge" above a hero headline. */
 export function pill(text: string): LayoutNode {
   return n(
     "Heading",
-    { text, level: "div", fontSize: "12.5px", fontWeight: "700", letterSpacing: "0.16em", textTransform: "uppercase", color: "#c7d2fe", align: "center" },
+    { text, level: "div", fontSize: "12.5px", fontWeight: "700", letterSpacing: "0.16em", textTransform: "uppercase", color: T.accentStrong, align: "center" },
     {
       style: {
-        background: "rgba(37,99,255,0.14)",
+        background: "rgba(37,99,255,0.08)",
         borderStyle: "solid",
         borderWidth: "1px",
-        borderColor: "rgba(37,99,255,0.42)",
+        borderColor: "rgba(37,99,255,0.28)",
         borderRadius: "9999px",
         paddingTop: "9px",
         paddingBottom: "9px",
@@ -523,10 +536,10 @@ export function glowCard(icon: string, title: string, description: string, glow 
       glowColor: glow,
       glowIntensity: "34px",
       borderRadius: "18px",
-      cardBackground: "rgba(255,255,255,0.035)",
+      cardBackground: "#ffffff",
       cardBorderStyle: "solid",
       cardBorderWidth: "1px",
-      cardBorderColor: "rgba(255,255,255,0.10)",
+      cardBorderColor: "rgba(15,23,42,0.10)",
       iconColor: glow,
       titleColor: T.text,
       descColor: T.muted,
@@ -566,8 +579,8 @@ export function marquee(items: string[], speed = 26): LayoutNode {
     gap: "1.25rem",
     background: "transparent",
     color: T.text,
-    pillBackground: "rgba(255,255,255,0.05)",
-    pillColor: "rgba(255,255,255,0.86)",
+    pillBackground: "rgba(15,23,42,0.05)",
+    pillColor: "rgba(15,23,42,0.78)",
     fontSize: "0.95rem",
     fontWeight: "600",
   });
@@ -579,7 +592,7 @@ export function statement(text: string): LayoutNode {
     text,
     unit: "word",
     revealStyle: "opacity",
-    dimmedOpacity: "0.14",
+    dimmedOpacity: "0.16",
     align: "center",
     color: T.text,
     fontSize: "clamp(1.7rem, 4.2vw, 3.2rem)",
@@ -613,7 +626,7 @@ export function stackedImages(images: string[]): LayoutNode {
 export function statTile(value: string, label: string, accent = T.accent): LayoutNode {
   return n(
     "Section",
-    { layoutMode: "flex", direction: "column", gap: "4px", contentWidth: "full", background: "rgba(255,255,255,0.04)" },
+    { layoutMode: "flex", direction: "column", gap: "4px", contentWidth: "full", background: T.surface },
     {
       children: [
         n("Counter", {
@@ -637,11 +650,13 @@ export function statTile(value: string, label: string, accent = T.accent): Layou
         paddingRight: "20px",
         borderStyle: "solid",
         borderWidth: "1px",
-        borderColor: "rgba(255,255,255,0.10)",
+        borderColor: T.surfaceBorder,
         borderRadius: "14px",
         textAlign: "center",
-        hoverTransitionDuration: "0.3s",
-        hover: { borderColor: accent, background: "rgba(255,255,255,0.07)", transform: "translateY(-4px)" },
+        boxShadow: "0 1px 3px rgba(15,23,42,0.05)",
+        hoverTransitionDuration: "0.38s",
+        hoverTransitionEasing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        hover: { borderColor: accent, background: "#ffffff", transform: "translateY(-10px) scale(1.03)", boxShadow: `0 22px 44px -10px ${accent}3a` },
       },
     }
   );
@@ -651,7 +666,7 @@ export function statTile(value: string, label: string, accent = T.accent): Layou
 export function quote(text: string, author: string, role: string, accent = T.accent): LayoutNode {
   return n(
     "Section",
-    { layoutMode: "flex", direction: "column", gap: "14px", contentWidth: "full", background: "rgba(255,255,255,0.035)" },
+    { layoutMode: "flex", direction: "column", gap: "14px", contentWidth: "full", background: T.surface },
     {
       children: [
         n("Heading", { text: "“", level: "div", fontSize: "62px", fontWeight: "800", color: accent }, { style: { lineHeight: "0.7", opacity: "0.55" } }),
@@ -666,13 +681,43 @@ export function quote(text: string, author: string, role: string, accent = T.acc
         paddingRight: "28px",
         borderStyle: "solid",
         borderWidth: "1px",
-        borderColor: "rgba(255,255,255,0.10)",
+        borderColor: T.surfaceBorder,
         borderRadius: T.radius,
         height: "100%",
-        hoverTransitionDuration: "0.32s",
-        hover: { borderColor: accent, transform: "translateY(-6px)", boxShadow: "0 22px 54px rgba(2,6,23,0.55)" },
+        boxShadow: "0 1px 3px rgba(15,23,42,0.06)",
+        hoverTransitionDuration: "0.4s",
+        hoverTransitionEasing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        hover: { borderColor: accent, transform: "translateY(-12px) scale(1.02)", boxShadow: `0 28px 56px -12px ${accent}3a` },
       },
     }
+  );
+}
+
+/**
+ * Tick list built from IconList rather than the Checklist block.
+ *
+ * Checklist renders its own centred "CHECKLIST" title and a boxed
+ * two-column included/excluded frame — fine as a standalone section, wrong
+ * inside a column beside body copy, where it broke the reading rhythm and
+ * introduced a heading nobody asked for. This is just the list.
+ */
+export function tickList(items: string[], accent = T.accent): LayoutNode {
+  return n(
+    "IconList",
+    {
+      items: items.map((text) => ({ text, icon: "FaCheck", href: "", openInNewTab: false })),
+      layout: "list",
+      listGap: "16px",
+      listAlign: "flex-start",
+      dividerEnabled: false,
+      iconColor: accent,
+      iconSize: "17px",
+      iconGap: "12px",
+      textColor: T.text,
+      textFontSize: "1rem",
+      textFontWeight: "500",
+    },
+    { timelines: revealStagger(0.1) }
   );
 }
 

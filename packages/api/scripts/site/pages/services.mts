@@ -1,4 +1,4 @@
-import { GLOW, IMG, T, advHeading, button, card, cols, counter, doc, eyebrow, glowCard, h, image, marquee, n, p, pill, reveal, row, section, splitHeading, stackedImages } from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, card, cols, counter, doc, eyebrow, glowCard, h, image, marquee, n, p, pill, reveal, row, section, splitHeading, stackedImages, tickList } from "../kit.mjs";
 
 export const servicesMeta = {
   slug: "services",
@@ -25,18 +25,8 @@ function serviceBlock(
       eyebrow(kicker),
       h(title),
       p(body),
-      n("Checklist", {
-        eyebrow: "",
-        title: "",
-        includedLabel: "Includes:",
-        includedItems: bullets,
-        excludedLabel: "",
-        excludedItems: [],
-        ctaLabel: "Discuss this service",
-        ctaHref: "/contact",
-        containerBackground: "transparent",
-        containerBorderColor: "transparent",
-      }),
+      tickList(bullets, accent),
+      row([button("Discuss this service", "/contact", "ghost")]),
     ],
   });
   const pic = image(img, alt);

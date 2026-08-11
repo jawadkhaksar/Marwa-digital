@@ -295,9 +295,25 @@ function bindTimeline(gsap: Gsap, ScrollTrigger: typeof import("gsap/ScrollTrigg
     const target = resolveTargets(el, bt, SplitText, cleanups);
     const tl = buildTimeline(gsap, target, bt);
     const cfg = bt.trigger.scrollConfig ?? { scrub: true, start: "top 80%", end: "bottom 20%", pin: false };
-    const st = ScrollTrigger.create({ trigger: el, start: cfg.start, end: cfg.end, scrub: cfg.scrub, pin: cfg.pin, animation: tl });
+    // No tl.play() here on purpose. The timeline is built paused and handed
+    // to ScrollTrigger via `animation` — ScrollTrigger owns playback from
+    // that point (scrubbing it against scroll position, or firing it on
+    // enter via toggleActions). Calling play() as well started every
+    // timeline immediately on page load, so by the time an element was
+    // scrolled into view its entrance had already finished off-screen and
+    // no scroll animation was ever visible.
+    const st = ScrollTrigger.create({
+      trigger: el,
+      start: cfg.start,
+      end: cfg.end,
+      scrub: cfg.scrub,
+      pin: cfg.pin,
+      animation: tl,
+      // Only meaningful when not scrubbing: play on first enter, and play
+      // again when re-entering from above so a scroll back up still shows it.
+      ...(cfg.scrub ? {} : { toggleActions: "play none none reverse" }),
+    });
     cleanups.push(() => st.kill());
-    tl.play();
   } else if (mode === "onHover") {
     const tl = buildTimeline(gsap, el, bt);
     const enter = () => tl.play();

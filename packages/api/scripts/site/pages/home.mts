@@ -1,4 +1,4 @@
-import { GLOW, IMG, T, advHeading, button, card, cols, doc, eyebrow, glowCard, h, image, marquee, n, p, pill, quote, reveal, row, section, spacer, splitHeading, stackedImages, statTile, statement, step } from "../kit.mjs";
+import { GLOW, IMG, T, advHeading, button, card, cols, doc, eyebrow, glowCard, h, image, marquee, n, p, pill, quote, reveal, row, section, spacer, splitHeading, stackedImages, statTile, statement, step, tickList } from "../kit.mjs";
 
 export const homeMeta = {
   slug: "home",
@@ -96,24 +96,12 @@ export function homeLayout() {
                 eyebrow("Why Marwa Digital"),
                 splitHeading("A senior team,", " no handoffs, no surprises"),
                 p("Most agencies sell you a pitch team and deliver with juniors. We don't. The strategists and engineers in your kickoff call are the people doing the work — which is why our projects ship on time and our clients stay an average of three years."),
-                n("Checklist", {
-                  eyebrow: "",
-                  title: "",
-                  includedLabel: "What you get:",
-                  includedItems: [
-                    "A dedicated senior team from kickoff to launch",
+                tickList(["A dedicated senior team from kickoff to launch",
                     "Fixed scope and fixed price — no hourly surprises",
                     "Weekly demos, so you always see progress",
                     "Full ownership of code, content and assets",
-                    "30 days of post-launch support included",
-                  ],
-                  excludedLabel: "",
-                  excludedItems: [],
-                  ctaLabel: "Talk to a strategist",
-                  ctaHref: "/contact",
-                  containerBackground: "transparent",
-                  containerBorderColor: "transparent",
-                }),
+                    "30 days of post-launch support included",]),
+                row([button("Talk to a strategist", "/contact")]),
               ],
             }),
             image(IMG.meeting, "The Marwa Digital team reviewing a website design together"),
