@@ -10,6 +10,7 @@ export function MotionPathScrollBinder() {
   useEffect(() => {
     let cancelled = false;
     let ctx: ReturnType<typeof import("gsap").gsap.context> | null = null;
+    let boundEl: HTMLElement | null = null;
 
     (async () => {
       const carEl =
@@ -17,6 +18,18 @@ export function MotionPathScrollBinder() {
         document.getElementById("car-element");
       const pathEl = document.getElementById("road-path");
       if (!carEl || !pathEl) return;
+      // LayoutRenderer mounts one of these per call (header + page body +
+      // footer, at minimum) — all sharing this same page-global `#road-path`/
+      // car element, since it's looked up by id rather than scoped to this
+      // instance's own subtree. Without this guard, every one of those
+      // instances independently binds its own ScrollTrigger/tween to the
+      // exact same element, so the car gets driven by several conflicting
+      // scroll-scrubbed timelines at once. Only the first mounted instance
+      // actually binds; the marker is cleared on its own unmount so a real
+      // remount (route change, HMR) can rebind.
+      if ((carEl as HTMLElement).dataset.motionPathBound === "1") return;
+      (carEl as HTMLElement).dataset.motionPathBound = "1";
+      boundEl = carEl as HTMLElement;
 
       const [{ gsap }, { ScrollTrigger }, { MotionPathPlugin }] = await Promise.all([
         import("gsap"),
@@ -132,6 +145,7 @@ export function MotionPathScrollBinder() {
     return () => {
       cancelled = true;
       ctx?.revert();
+      if (boundEl) delete boundEl.dataset.motionPathBound;
     };
   }, []);
 

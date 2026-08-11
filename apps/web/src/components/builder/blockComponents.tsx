@@ -319,13 +319,26 @@ function Section({
     alignItems,
     gap: gap || undefined,
     flexWrap: isGrid ? undefined : wrap,
-    minHeight: minHeight || undefined,
+    // `|| wrapperProps` rather than `|| undefined`: these keys are written
+    // after the `...wrapperProps?.style` spread above, so a bare `undefined`
+    // doesn't leave the spread value in place — it overwrites it with
+    // nothing, silently discarding a Min-Height set on the Advanced tab.
+    minHeight: minHeight || (wrapperProps?.style?.minHeight as CSSProperties["minHeight"]),
     // A blurred background layer is absolutely positioned and oversized to
     // hide its edges — needs a positioned ancestor to anchor to, and clipping
     // so it doesn't spill past this element's own bounds.
     position: hasBlurredImage ? "relative" : (wrapperProps?.style?.position as CSSProperties["position"] | undefined),
     overflow: hasBlurredImage ? "hidden" : overflow && overflow !== "default" ? overflow : undefined,
-    width: contentWidth === "full" ? "100%" : undefined,
+    // An explicit Width from the Size panel outranks contentWidth. Both are
+    // deliberate settings, but contentWidth is a coarse layout mode that
+    // nearly every section carries by default ("full"), whereas a typed width
+    // is a specific instruction about this one element — so letting the mode
+    // win means the Size field silently does nothing on most sections, which
+    // is exactly how this read as broken. Same fallback shape as maxWidth
+    // below, and for the same reason as minHeight above: this key is written
+    // after the spread, so it must re-supply the wrapper value rather than
+    // resolve to undefined.
+    width: (wrapperProps?.style?.width as CSSProperties["width"]) ?? (contentWidth === "full" ? "100%" : undefined),
     maxWidth: contentWidth === "boxed" ? width : wrapperProps?.style?.maxWidth,
     marginLeft: contentWidth === "boxed" ? "auto" : (wrapperProps?.style?.marginLeft as string | undefined) ?? undefined,
     marginRight: contentWidth === "boxed" ? "auto" : (wrapperProps?.style?.marginRight as string | undefined) ?? undefined,
@@ -376,8 +389,24 @@ function Section({
     // same reason: harmless on a genuine row
     // child, but no-op-vs-safe-default elsewhere isn't worth the risk of it
     // interacting with something unrelated on a plain top-level section.
-    flex: parentIsFlexRow ? (contentWidth === "full" ? "1 1 0%" : `0 1 ${width || "1152px"}`) : undefined,
-    minWidth: parentIsFlexRow ? 0 : undefined,
+    // A typed Width has to be reflected in flex-basis too. Inside a flex row
+    // the basis, not the width, is what actually sizes the child, so setting
+    // width alone would still lose to a `1 1 0%` grow — the value would apply
+    // and then be stretched straight back out.
+    flex: parentIsFlexRow
+      ? wrapperProps?.style?.width
+        ? `0 1 ${wrapperProps.style.width}`
+        : contentWidth === "full"
+          ? "1 1 0%"
+          : `0 1 ${width || "1152px"}`
+      : undefined,
+    // An explicit Min-Width wins over the reset. The reset stays the default
+    // (it is what stops unbreakable content defeating flex-shrink), but a
+    // value typed into the Size panel is a deliberate instruction, and being
+    // silently overwritten by 0 is indistinguishable from the field being
+    // broken. Falls back to the wrapper value outside a row too, since
+    // writing `undefined` here would otherwise discard the spread value.
+    minWidth: (wrapperProps?.style?.minWidth as CSSProperties["minWidth"]) ?? (parentIsFlexRow ? 0 : undefined),
 
     background: background || wrapperProps?.style?.background,
     ...(hasBlurredImage ? undefined : combinedBg),

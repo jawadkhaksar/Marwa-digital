@@ -358,7 +358,10 @@ export function FieldsEditor({ value, onChange }: { value: FormFieldDef[]; onCha
                       <input
                         type="text"
                         value={field.id}
-                        onChange={(e) => update(i, { id: slugify(e.target.value) })}
+                        onChange={(e) => {
+                          const existingIds = new Set(value.filter((f, idx) => idx !== i).map((f) => f.id));
+                          update(i, { id: uniqueId(slugify(e.target.value), existingIds) });
+                        }}
                         className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs"
                       />
                       <p className="mt-1 text-[10px] text-zinc-600">

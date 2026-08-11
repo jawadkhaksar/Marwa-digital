@@ -1282,14 +1282,16 @@ export function AnimationTimelineEditor({
   }
 
   function addLayer() {
-    const i = layers.length % LAYER_PALETTE.length;
     const newId = uid();
-    setLayers(p => [...p, {
-      id: newId, name: `Layer ${p.length + 1}`, color: LAYER_PALETTE[i], emoji: LAYER_EMOJIS[i],
-      visible: true, locked: false, expanded: false, cssVarTracks: [], clipPathTracks: [],
-      clips: [{ id: uid(), start: 0, end: 2 }], tracks: makeDefaultTracks(),
-      trigger: { mode: "onMount" },
-    }]);
+    setLayers(p => {
+      const i = p.length % LAYER_PALETTE.length;
+      return [...p, {
+        id: newId, name: `Layer ${p.length + 1}`, color: LAYER_PALETTE[i], emoji: LAYER_EMOJIS[i],
+        visible: true, locked: false, expanded: false, cssVarTracks: [], clipPathTracks: [],
+        clips: [{ id: uid(), start: 0, end: 2 }], tracks: makeDefaultTracks(),
+        trigger: { mode: "onMount" },
+      }];
+    });
     handleSelectLayerRow(newId);
   }
 

@@ -45,7 +45,13 @@ function resolveTagValue(key: string, ctx: DynamicTagRuntimeContext): string {
     case "site.logoImage":
       return ctx.site?.logoImage ?? "";
     case "site.currentDateTime":
-      return new Date().toLocaleString();
+      // Fixed locale/timeZone, not ambient `.toLocaleString()` — this token
+      // resolves inside SiteHeader/SiteFooter, which are Client Components,
+      // so the same node renders once during SSR and again during
+      // hydration; an ambient-locale format would differ (and trip a
+      // hydration-mismatch warning) whenever the server's Node locale
+      // differs from the visitor's browser locale, on every single load.
+      return new Date().toLocaleString("en-US", { timeZone: "UTC" });
     default:
       // Unknown tag key (a category not yet built, or stale data from a
       // future version) — same "never leak {{...}} to a visitor" rule as a

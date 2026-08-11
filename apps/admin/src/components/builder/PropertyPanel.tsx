@@ -8962,12 +8962,16 @@ function WebflowSpacingSection({
     const startNum = parsed.isAuto ? 0 : parsed.num;
     const unit = parsed.isAuto ? "px" : parsed.unit;
     const isVertical = key.includes("Top") || key.includes("Bottom");
+    // Top/Right grow when dragged away from the box (up/right); Bottom/Left
+    // grow in the opposite screen direction (down/left) — same axis, flipped
+    // sign — since "away from the box" points a different way for each.
+    const sign = key.includes("Bottom") || key.includes("Left") ? -1 : 1;
 
     const onMouseMove = (ev: MouseEvent) => {
       ev.preventDefault();
       const deltaX = ev.clientX - startX;
       const deltaY = startY - ev.clientY;
-      const delta = isVertical ? deltaY : deltaX;
+      const delta = (isVertical ? deltaY : deltaX) * sign;
 
       const nextNum = Math.max(0, Math.round(startNum + delta));
       updateValue(key, `${nextNum}${unit}`, { altKey: ev.altKey, shiftKey: ev.shiftKey });

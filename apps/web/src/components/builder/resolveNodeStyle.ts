@@ -247,6 +247,14 @@ function applyResponsiveFields(cssVars: CSSProperties, fields: ResponsiveStyleFi
 
   if (fields.width) cssVars.width = fields.width;
   if (fields.height) cssVars.height = fields.height;
+  // The Size panel's Min/Max rows. These reach the tablet/mobile and hover
+  // paths through fieldsToDeclarations, but the base breakpoint is built from
+  // this inline object instead — so without them here, a Min-Width/Min-Height
+  // /Max-Height set at desktop rendered nothing at all and only appeared once
+  // the viewport crossed into a breakpoint that had its own override.
+  if (fields.minWidth) cssVars.minWidth = fields.minWidth;
+  if (fields.minHeight) cssVars.minHeight = fields.minHeight;
+  if (fields.maxHeight) cssVars.maxHeight = fields.maxHeight;
   if (fields.blockAlign === "center") {
     cssVars.marginLeft = "auto";
     cssVars.marginRight = "auto";
@@ -387,11 +395,11 @@ function fieldsToDeclarations(fields: StyleOverrideBag, parentIsFlexRow?: boolea
   // blockComponents.tsx's Section — same bug, same reasoning, mirrored here
   // for the tablet/mobile override path). Grow is safe once this guard has
   // passed since the main axis is confirmed horizontal.
-  if (fields.contentWidth === "full") {
-    if (parentIsFlexRow) push(`flex:1 1 0%`);
-    push(`width:100%`);
-    push(`max-width:none`);
-  } else if (str("width")) {
+  // Explicit width is tested BEFORE contentWidth, matching the precedence in
+  // blockComponents.tsx's Section: contentWidth is a coarse mode most
+  // sections carry by default, so checking it first made a typed Width at
+  // this breakpoint silently do nothing. A specific value beats a mode.
+  if (str("width")) {
     const w = str("width")!;
     if (w === "100%" || w === "100vw") {
       if (parentIsFlexRow) push(`flex:1 1 0%`);
@@ -410,6 +418,10 @@ function fieldsToDeclarations(fields: StyleOverrideBag, parentIsFlexRow?: boolea
       push(`margin-left:auto`);
       push(`margin-right:auto`);
     }
+  } else if (fields.contentWidth === "full") {
+    if (parentIsFlexRow) push(`flex:1 1 0%`);
+    push(`width:100%`);
+    push(`max-width:none`);
   }
   if (str("height")) push(`height:${str("height")}`);
   if (str("minHeight")) push(`min-height:${str("minHeight")}`);

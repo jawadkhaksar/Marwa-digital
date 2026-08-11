@@ -93,6 +93,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     (bt.cssVarTracks || []).forEach(function (track) {
       var kfs = track.keyframes.slice().sort(function (a, b) { return a.time - b.time; });
+      if (kfs.length === 1) { var v = {}; v[track.varName] = kfs[0].value; addSet(v, kfs[0].time); return; }
       for (var i = 0; i < kfs.length - 1; i++) {
         var a = kfs[i], b = kfs[i + 1];
         var dur = b.time - a.time;
@@ -110,6 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     (bt.clipPathTracks || []).forEach(function (track) {
       var kfs = track.keyframes.slice().sort(function (a, b) { return a.time - b.time; });
+      if (kfs.length === 1) { addSet({ clipPath: kfs[0].value }, kfs[0].time); return; }
       for (var i = 0; i < kfs.length - 1; i++) {
         var a = kfs[i], b = kfs[i + 1];
         var dur = b.time - a.time;

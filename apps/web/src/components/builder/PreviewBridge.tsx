@@ -143,6 +143,12 @@ export function PreviewBridge({ isBuilderPreview }: { isBuilderPreview: boolean 
     }
 
     function handleParentMessage(e: MessageEvent) {
+      // `e.source === window.parent` guards against a spoofed message from
+      // some other frame/window that merely knows the "marwa-admin" source
+      // tag — without it, anything with a reference to this iframe (an ad,
+      // a third-party embed sharing the page) could drive scroll/timeline-
+      // scrub/drag-drop actions in the live preview.
+      if (e.source !== window.parent) return;
       if (e.data?.source !== "marwa-admin") return;
 
       if (e.data.action === "request-scroll-report") {

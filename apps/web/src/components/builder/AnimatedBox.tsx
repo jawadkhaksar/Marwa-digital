@@ -186,6 +186,10 @@ function forEachSegment(bt: BlockTimeline, addTween: (vars: TweenVars, offset: n
   }
   for (const track of bt.cssVarTracks) {
     const kfs = [...track.keyframes].sort((a, b) => a.time - b.time);
+    if (kfs.length === 1) {
+      addSet({ [track.varName]: kfs[0].value }, kfs[0].time);
+      continue;
+    }
     for (let i = 0; i < kfs.length - 1; i++) {
       const a = kfs[i];
       const b = kfs[i + 1];
@@ -202,6 +206,10 @@ function forEachSegment(bt: BlockTimeline, addTween: (vars: TweenVars, offset: n
   }
   for (const track of bt.clipPathTracks) {
     const kfs = [...track.keyframes].sort((a, b) => a.time - b.time);
+    if (kfs.length === 1) {
+      addSet({ clipPath: kfs[0].value }, kfs[0].time);
+      continue;
+    }
     for (let i = 0; i < kfs.length - 1; i++) {
       const a = kfs[i];
       const b = kfs[i + 1];
