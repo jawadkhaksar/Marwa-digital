@@ -759,12 +759,12 @@ export function heroSlider(slides: HeroSlide[]): LayoutNode {
       transition: "fade",
       arrowStyle: "circle",
       dotStyle: "lines",
-      contentAlign: "right",
+      contentAlign: "left",
       contentSize: "hero",
       color: "#ffffff",
       // The scrim: dark enough that a headline stays legible over any of
       // the three photographs, weighted to the left where the type sits.
-      background: "linear-gradient(270deg, rgba(6,9,25,0.90) 0%, rgba(6,9,25,0.66) 42%, rgba(6,9,25,0.20) 74%, rgba(6,9,25,0.40) 100%)",
+      background: "linear-gradient(90deg, rgba(6,9,25,0.90) 0%, rgba(6,9,25,0.66) 42%, rgba(6,9,25,0.20) 74%, rgba(6,9,25,0.40) 100%)",
       borderRadius: "0px",
       arrowColor: "#ffffff",
       arrowBackground: "rgba(255,255,255,0.14)",
