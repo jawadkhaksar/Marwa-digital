@@ -109,6 +109,20 @@ app.get("/health/db", async (_req, res) => {
     res.json({ ok: true, ms: Date.now() - started });
   } catch (err) {
     const code = (err as { code?: string }).code ?? null;
+    // PrismaClientInitializationError carries no error code, so the cause has
+    // to come from the message. Match it against the known failure modes and
+    // report only the classification — the raw text can embed the connection
+    // string, so it is never returned.
+    const raw = (err as Error).message ?? "";
+    const classify = (): string => {
+      if (/authentication failed|password authentication/i.test(raw)) return "AUTH_FAILED";
+      if (/does not exist|database .* not found/i.test(raw)) return "DB_NOT_FOUND";
+      if (/can't reach|connection refused|timed out|ENOTFOUND|EAI_AGAIN/i.test(raw)) return "UNREACHABLE";
+      if (/too many connections|connection limit|pool timed out/i.test(raw)) return "POOL_EXHAUSTED";
+      if (/environment variable|not found.*DATABASE_URL|invalid.*url|the provided database string/i.test(raw)) return "BAD_URL";
+      if (/query engine|libquery|binary target|prisma schema/i.test(raw)) return "ENGINE_MISSING";
+      return "UNKNOWN";
+    };
     let host: string | null = null;
     try {
       host = new URL(process.env.DATABASE_URL ?? "").host || null;
@@ -118,6 +132,7 @@ app.get("/health/db", async (_req, res) => {
     res.status(503).json({
       ok: false,
       code,
+      cause: classify(),
       name: (err as Error).name,
       host,
       pooled: host ? host.includes("-pooler") : null,
