@@ -49,6 +49,16 @@ Plus **6 full blog articles** (1,000+ words each, written for search), 4 categor
 
 Copy is written to rank: real search intent, specific numbers, objection handling. It's placeholder *content* (invented client names and metrics) — swap in your real case studies before promoting the site.
 
+### Theme: light
+
+The site now ships **light** — white and off-white alternating bands, ink-dark type, brand blue/violet reserved for accents. That's both the generated pages and the site's own default theme (the toggle still works; this only changes the first-visit default).
+
+### Header & footer are Theme Builder templates
+
+Both are now **SiteTemplate** records, not hard-coded React — so you can edit the nav, footer columns, social links and CTA in Theme Builder, block by block. Sticky translucent header with logo + nav + gradient CTA; four-column footer with brand blurb, social icons, link columns and a legal bar. The old hard-coded components remain as a fallback wherever no template matches.
+
+Regenerate with `scripts/site/seedTheme.mts` (same arguments as the page seeder).
+
 ### Design
 
 Rebuilt after your feedback that it looked too plain:
@@ -99,6 +109,9 @@ Then, found during the audit:
 10. **A sitemap prerender could fail the entire site build** — `/sitemap.xml` fetched the API with no error handling, so a brief API outage during deploy took the whole build down. Now degrades gracefully.
 11. **`turbo.json` had an invalid `"//"` comment key** — my own mistake, introduced in #7 and caught in the audit. It made every `turbo run` fail to parse. Removed.
 12. **Opaque upload errors** — a failed upload returned "Internal server error". Now returns the actual cause, plus a `storage-status` diagnostic endpoint.
+13. **No scroll animation was firing anywhere on the site.** `AnimatedBox` handed each paused timeline to ScrollTrigger via `animation`, then *also* called `tl.play()`. ScrollTrigger owns playback once given an animation, so the extra `play()` ran every timeline on page load — each entrance finished off-screen and nothing was ever visible on scroll. This was a pre-existing bug in the builder runtime, affecting any animated block, not just the new pages.
+14. **Checklist block used inline beside body copy** — it renders its own centred "CHECKLIST" heading and boxed frame, which broke the column layout. Replaced everywhere with a plain tick list plus a real button.
+15. **Hover effects too subtle** — lifts went from 3–8px to 10–14px with a slight scale, springier easing and accent-tinted shadows.
 
 ---
 
