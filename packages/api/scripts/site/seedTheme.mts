@@ -32,8 +32,8 @@ function navLink(label: string, href: string): LayoutNode {
       borderRadius: "8px",
       fontSize: "0.95rem",
       fontWeight: "600",
-      paddingTop: "8px",
-      paddingBottom: "8px",
+      paddingTop: "7px",
+      paddingBottom: "7px",
       paddingLeft: "12px",
       paddingRight: "12px",
     },
@@ -47,7 +47,7 @@ function navLink(label: string, href: string): LayoutNode {
 }
 
 function headerLayout() {
-  const logo = n("SiteLogo", { link: "site", align: "left", imageMaxWidth: "168px" });
+  const logo = n("SiteLogo", { link: "site", align: "left", imageMaxWidth: "138px" });
 
   const nav = n(
     "Section",
@@ -81,8 +81,8 @@ function headerLayout() {
             borderRadius: "9999px",
             fontSize: "0.92rem",
             fontWeight: "700",
-            paddingTop: "13px",
-            paddingBottom: "13px",
+            paddingTop: "11px",
+            paddingBottom: "11px",
             paddingLeft: "26px",
             paddingRight: "26px",
             boxShadow: "0 10px 26px rgba(37,99,255,0.30)",
@@ -123,8 +123,8 @@ function headerLayout() {
           children: [bar],
           name: "site-header",
           style: {
-            paddingTop: "16px",
-            paddingBottom: "16px",
+            paddingTop: "10px",
+            paddingBottom: "10px",
             paddingLeft: "24px",
             paddingRight: "24px",
             borderStyle: "solid",

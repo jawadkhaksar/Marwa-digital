@@ -736,6 +736,8 @@ export interface HeroSlide {
   subheading: string;
   buttonLabel: string;
   buttonUrl: string;
+  buttonLabel2?: string;
+  buttonUrl2?: string;
 }
 
 export function heroSlider(slides: HeroSlide[]): LayoutNode {
@@ -757,10 +759,12 @@ export function heroSlider(slides: HeroSlide[]): LayoutNode {
       transition: "fade",
       arrowStyle: "circle",
       dotStyle: "lines",
+      contentAlign: "right",
+      contentSize: "hero",
       color: "#ffffff",
       // The scrim: dark enough that a headline stays legible over any of
       // the three photographs, weighted to the left where the type sits.
-      background: "linear-gradient(90deg, rgba(6,9,25,0.90) 0%, rgba(6,9,25,0.62) 38%, rgba(6,9,25,0.16) 72%, rgba(6,9,25,0.34) 100%)",
+      background: "linear-gradient(270deg, rgba(6,9,25,0.90) 0%, rgba(6,9,25,0.66) 42%, rgba(6,9,25,0.20) 74%, rgba(6,9,25,0.40) 100%)",
       borderRadius: "0px",
       arrowColor: "#ffffff",
       arrowBackground: "rgba(255,255,255,0.14)",

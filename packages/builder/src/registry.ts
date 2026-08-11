@@ -2675,6 +2675,10 @@ const itineraryRoadmapBlock = defineBlock({
 export const SLIDER_TRANSITION_VALUES = ["slide", "fade"] as const;
 export const SLIDER_ARROW_STYLE_VALUES = ["circle", "square", "minimal"] as const;
 export const SLIDER_DOT_STYLE_VALUES = ["dots", "lines", "numbers"] as const;
+/** Where a slide's caption sits within the frame. Centre is the default the block has always used; left/right exist for hero sliders, where copy needs to sit clear of the artwork's focal point. */
+export const SLIDER_CONTENT_ALIGN_VALUES = ["left", "center", "right"] as const;
+/** Caption scale. "hero" promotes the heading to display size and drops the line clamps, for a slider used as a page's main banner rather than a content carousel. */
+export const SLIDER_CONTENT_SIZE_VALUES = ["default", "hero"] as const;
 
 export interface SliderSlide {
   image: string;
@@ -2682,6 +2686,9 @@ export interface SliderSlide {
   subheading?: string;
   buttonLabel?: string;
   buttonUrl?: string;
+  /** Optional secondary call to action, rendered as an outline button beside the primary one — hero slides usually need both a "learn more" and a "get in touch". */
+  buttonLabel2?: string;
+  buttonUrl2?: string;
 }
 
 const sliderSlideSchema = z.object({
@@ -2690,6 +2697,8 @@ const sliderSlideSchema = z.object({
   subheading: z.string().optional(),
   buttonLabel: z.string().optional(),
   buttonUrl: z.string().optional(),
+  buttonLabel2: z.string().optional(),
+  buttonUrl2: z.string().optional(),
 });
 
 const sliderBlock = defineBlock({
@@ -2713,6 +2722,8 @@ const sliderBlock = defineBlock({
     transition: "slide" as (typeof SLIDER_TRANSITION_VALUES)[number],
     arrowStyle: "circle" as (typeof SLIDER_ARROW_STYLE_VALUES)[number],
     dotStyle: "dots" as (typeof SLIDER_DOT_STYLE_VALUES)[number],
+    contentAlign: "center" as (typeof SLIDER_CONTENT_ALIGN_VALUES)[number],
+    contentSize: "default" as (typeof SLIDER_CONTENT_SIZE_VALUES)[number],
     // Every field below is a real Style-tab control (matching STYLE_KEYS in
     // the admin) — previously the block had none at all, so background/
     // arrow/dot colors and the overlay scrim were hardcoded in the
@@ -2756,6 +2767,8 @@ const sliderBlock = defineBlock({
     transition: z.enum(SLIDER_TRANSITION_VALUES).default("slide"),
     arrowStyle: z.enum(SLIDER_ARROW_STYLE_VALUES).default("circle"),
     dotStyle: z.enum(SLIDER_DOT_STYLE_VALUES).default("dots"),
+    contentAlign: z.enum(SLIDER_CONTENT_ALIGN_VALUES).default("center"),
+    contentSize: z.enum(SLIDER_CONTENT_SIZE_VALUES).default("default"),
     color: z.string().optional(),
     background: z.string().optional(),
     borderStyle: z.enum(BORDER_STYLE_VALUES).default("none"),
@@ -2813,6 +2826,8 @@ const carouselContainerBlock = defineBlock({
     arrowStyle: "circle" as (typeof SLIDER_ARROW_STYLE_VALUES)[number],
     arrowPosition: "inside" as (typeof CAROUSEL_ARROW_POSITION_VALUES)[number],
     dotStyle: "dots" as (typeof SLIDER_DOT_STYLE_VALUES)[number],
+    contentAlign: "center" as (typeof SLIDER_CONTENT_ALIGN_VALUES)[number],
+    contentSize: "default" as (typeof SLIDER_CONTENT_SIZE_VALUES)[number],
     slideBackground: "" as string,
     slideBorderRadius: "8px" as string,
     slideBoxShadow: "" as string,
@@ -2837,6 +2852,8 @@ const carouselContainerBlock = defineBlock({
     arrowStyle: z.enum(SLIDER_ARROW_STYLE_VALUES).default("circle"),
     arrowPosition: z.enum(CAROUSEL_ARROW_POSITION_VALUES).default("inside"),
     dotStyle: z.enum(SLIDER_DOT_STYLE_VALUES).default("dots"),
+    contentAlign: z.enum(SLIDER_CONTENT_ALIGN_VALUES).default("center"),
+    contentSize: z.enum(SLIDER_CONTENT_SIZE_VALUES).default("default"),
     slideBackground: z.string().optional(),
     slideBorderRadius: z.string().optional(),
     slideBoxShadow: z.string().optional(),

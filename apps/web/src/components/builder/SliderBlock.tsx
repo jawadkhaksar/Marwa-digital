@@ -11,6 +11,8 @@ import { hashString, ArrowButton, Dots } from "@/components/builder/carouselPrim
 function SlideCard({
   slide,
   aspectRatio,
+  contentAlign,
+  contentSize,
   color,
   background,
   borderStyle,
@@ -29,6 +31,8 @@ function SlideCard({
 }: {
   slide: SliderSlide;
   aspectRatio?: string;
+  contentAlign?: "left" | "center" | "right";
+  contentSize?: "default" | "hero";
   color?: string;
   background?: string;
   borderStyle?: "none" | "solid" | "dashed" | "dotted";
@@ -45,7 +49,20 @@ function SlideCard({
   borderRadiusBottomLeft?: string;
   boxShadow?: string;
 }) {
-  const hasOverlay = slide.heading || slide.subheading || slide.buttonLabel;
+  const hasOverlay = slide.heading || slide.subheading || slide.buttonLabel || slide.buttonLabel2;
+  const isHero = contentSize === "hero";
+  // Where the caption sits in the frame. Centre keeps the original
+  // behaviour; left/right pull the copy to one side and cap its width, so a
+  // hero slide's text clears the artwork's focal point instead of sitting
+  // on top of it.
+  const alignClass =
+    contentAlign === "left"
+      ? "items-start text-left"
+      : contentAlign === "right"
+        ? "items-end text-right"
+        : "items-center text-center";
+  const clamp = (lines: number): CSSProperties =>
+    isHero ? {} : { display: "-webkit-box", WebkitLineClamp: lines, WebkitBoxOrient: "vertical" };
   const cardStyle: CSSProperties = {
     aspectRatio: aspectRatio || "16/9",
     borderTopLeftRadius: borderRadiusTopLeft || borderRadius || "12px",
@@ -66,26 +83,54 @@ function SlideCard({
       <img src={resolveImageUrl(slide.image)} alt={slide.heading || ""} className="h-full w-full object-cover" />
       {hasOverlay && (
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center gap-2 overflow-hidden px-6 py-4 text-center"
+          className={`absolute inset-0 flex flex-col justify-center overflow-hidden ${alignClass} ${
+            isHero ? "gap-5 px-8 py-10 md:px-16 lg:px-24" : "gap-2 px-6 py-4"
+          }`}
           style={{ background: background || "rgba(0,0,0,0.35)", color: color || "#fff" }}
         >
           {slide.heading && (
-            <h3 className="w-full overflow-hidden text-ellipsis text-xl font-bold leading-tight md:text-3xl" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+            <h2
+              className={`overflow-hidden text-ellipsis font-extrabold leading-[1.08] tracking-tight ${
+                isHero ? "max-w-2xl text-3xl md:text-5xl lg:text-6xl" : "w-full text-xl md:text-3xl"
+              }`}
+              style={clamp(2)}
+            >
               {slide.heading}
-            </h3>
+            </h2>
           )}
           {slide.subheading && (
             <p
-              className="w-full max-w-xl overflow-hidden text-ellipsis text-xs opacity-85 md:text-sm"
-              style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}
+              className={`overflow-hidden text-ellipsis opacity-90 ${
+                isHero ? "max-w-xl text-sm leading-relaxed md:text-base lg:text-lg" : "w-full max-w-xl text-xs md:text-sm"
+              }`}
+              style={clamp(3)}
             >
               {slide.subheading}
             </p>
           )}
-          {slide.buttonLabel && slide.buttonUrl && (
-            <a href={slide.buttonUrl} className="mt-1 shrink-0 rounded-full bg-gold px-5 py-2 text-xs font-semibold text-white transition hover:bg-gold-dark md:text-sm">
-              {slide.buttonLabel}
-            </a>
+          {(slide.buttonLabel || slide.buttonLabel2) && (
+            <div className={`flex flex-wrap gap-3 ${contentAlign === "right" ? "justify-end" : contentAlign === "left" ? "justify-start" : "justify-center"}`}>
+              {slide.buttonLabel && slide.buttonUrl && (
+                <a
+                  href={slide.buttonUrl}
+                  className={`shrink-0 rounded-full bg-gold font-semibold text-white transition hover:bg-gold-dark ${
+                    isHero ? "px-8 py-3.5 text-sm md:text-base" : "mt-1 px-5 py-2 text-xs md:text-sm"
+                  }`}
+                >
+                  {slide.buttonLabel}
+                </a>
+              )}
+              {slide.buttonLabel2 && slide.buttonUrl2 && (
+                <a
+                  href={slide.buttonUrl2}
+                  className={`shrink-0 rounded-full border border-white/45 font-semibold text-white backdrop-blur-sm transition hover:border-white hover:bg-white/15 ${
+                    isHero ? "px-8 py-3.5 text-sm md:text-base" : "mt-1 px-5 py-2 text-xs md:text-sm"
+                  }`}
+                >
+                  {slide.buttonLabel2}
+                </a>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -109,6 +154,8 @@ interface SliderProps {
   transition?: "slide" | "fade";
   arrowStyle?: "circle" | "square" | "minimal";
   dotStyle?: "dots" | "lines" | "numbers";
+  contentAlign?: "left" | "center" | "right";
+  contentSize?: "default" | "hero";
   color?: string;
   background?: string;
   borderStyle?: "none" | "solid" | "dashed" | "dotted";
@@ -149,6 +196,8 @@ export function SliderBlock({
   transition = "slide",
   arrowStyle = "circle",
   dotStyle = "dots",
+  contentAlign = "center",
+  contentSize = "default",
   color,
   background,
   borderStyle,
@@ -175,6 +224,8 @@ export function SliderBlock({
   const scopedClass = `sl-${hashString(`${itemsDesktop}|${itemsTablet}|${itemsMobile}|${gap}`)}`;
   const cardProps = {
     aspectRatio,
+    contentAlign,
+    contentSize,
     color,
     background,
     borderStyle,
