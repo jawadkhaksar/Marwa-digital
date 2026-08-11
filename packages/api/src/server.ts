@@ -6,6 +6,7 @@ import path from "path";
 // Patches Express so rejected promises in async route handlers are forwarded
 // to the error-handling middleware below instead of crashing the process.
 import "express-async-errors";
+import { prisma } from "@marwa/db";
 import { corsOptions, generalLimiter } from "./lib/security";
 import { authRouter } from "./routes/auth";
 import { contentRouter } from "./routes/content";
@@ -88,6 +89,42 @@ app.use("/api", generalLimiter);
 app.use(express.json({ limit: "20mb" }));
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
+
+/**
+ * Database reachability probe.
+ *
+ * The global error handler deliberately collapses everything to "Internal
+ * server error", which is right for production but leaves a total DB outage
+ * indistinguishable from an application bug. This runs one trivial query and
+ * reports the Prisma error *code* — P1001 unreachable, P1000 bad credentials,
+ * P2024 pool exhausted — which is what actually tells the two apart.
+ *
+ * Deliberately reports no connection string, credentials, or raw driver text;
+ * the code plus the host is the whole diagnostic surface.
+ */
+app.get("/health/db", async (_req, res) => {
+  const started = Date.now();
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ ok: true, ms: Date.now() - started });
+  } catch (err) {
+    const code = (err as { code?: string }).code ?? null;
+    let host: string | null = null;
+    try {
+      host = new URL(process.env.DATABASE_URL ?? "").host || null;
+    } catch {
+      host = process.env.DATABASE_URL ? "unparseable" : "unset";
+    }
+    res.status(503).json({
+      ok: false,
+      code,
+      name: (err as Error).name,
+      host,
+      pooled: host ? host.includes("-pooler") : null,
+      ms: Date.now() - started,
+    });
+  }
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api", contentRouter);
