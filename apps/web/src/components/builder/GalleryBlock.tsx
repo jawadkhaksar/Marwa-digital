@@ -84,8 +84,9 @@ export function GalleryBlock({
               ‹
             </button>
           )}
+          {/* Modulo-clamped like the prev/next/keyboard handlers above — `images` can shrink out from under a stale `openIndex` while the lightbox is open (a live edit in the admin preview). */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={resolveImageUrl(images[openIndex])} alt="" className="max-h-full max-w-full object-contain" onClick={(e) => e.stopPropagation()} />
+          <img src={resolveImageUrl(images[((openIndex % images.length) + images.length) % images.length])} alt="" className="max-h-full max-w-full object-contain" onClick={(e) => e.stopPropagation()} />
           {images.length > 1 && (
             <button
               type="button"

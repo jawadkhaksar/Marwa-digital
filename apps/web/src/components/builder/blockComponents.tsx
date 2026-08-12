@@ -35,6 +35,9 @@ import { PostsBlock } from "@/components/builder/PostsBlock";
 import { ItineraryRoadmapBlock } from "@/components/builder/ItineraryRoadmapBlock";
 import { PricingOverviewBlock } from "@/components/builder/PricingOverviewBlock";
 import { FeaturedRoutesCarouselBlock } from "@/components/builder/FeaturedRoutesCarouselBlock";
+import { SystemStatusWidgetBlock } from "@/components/builder/SystemStatusWidgetBlock";
+import { ApiEndpointPreviewBlock } from "@/components/builder/ApiEndpointPreviewBlock";
+import { TechStackGridBlock } from "@/components/builder/TechStackGridBlock";
 import { StaticToursGridBlock } from "@/components/builder/StaticToursGridBlock";
 import { DefinitionRowsBlock } from "@/components/builder/DefinitionRowsBlock";
 import { Services } from "@/components/Services";
@@ -335,7 +338,15 @@ function Section({
     // hide its edges — needs a positioned ancestor to anchor to, and clipping
     // so it doesn't spill past this element's own bounds.
     position: hasBlurredImage ? "relative" : (wrapperProps?.style?.position as CSSProperties["position"] | undefined),
-    overflow: hasBlurredImage ? "hidden" : overflow && overflow !== "default" ? overflow : undefined,
+    // hasBlurredImage still forces "hidden" — the blurred layer is oversized
+    // and must be clipped or it spills past the section. Otherwise the block's
+    // own value, then the panel's: same after-the-spread fallback as the keys
+    // above, since resolving to undefined would discard an Overflow set there.
+    overflow: hasBlurredImage
+      ? "hidden"
+      : overflow && overflow !== "default"
+        ? overflow
+        : (wrapperProps?.style?.overflow as CSSProperties["overflow"]),
     // An explicit Width from the Size panel outranks contentWidth. Both are
     // deliberate settings, but contentWidth is a coarse layout mode that
     // nearly every section carries by default ("full"), whereas a typed width
@@ -418,17 +429,22 @@ function Section({
     background: background || wrapperProps?.style?.background,
     ...(hasBlurredImage ? undefined : combinedBg),
 
-    borderStyle: borderStyle && borderStyle !== "none" ? borderStyle : undefined,
-    borderTopWidth: borderStyle && borderStyle !== "none" ? (borderWidthTop || borderWidth) : undefined,
-    borderRightWidth: borderStyle && borderStyle !== "none" ? (borderWidthRight || borderWidth) : undefined,
-    borderBottomWidth: borderStyle && borderStyle !== "none" ? (borderWidthBottom || borderWidth) : undefined,
-    borderLeftWidth: borderStyle && borderStyle !== "none" ? (borderWidthLeft || borderWidth) : undefined,
-    borderColor: borderStyle && borderStyle !== "none" ? borderColor : undefined,
-    borderTopLeftRadius: borderRadiusTopLeft || (borderRadius && borderRadius !== "0px" ? borderRadius : undefined),
-    borderTopRightRadius: borderRadiusTopRight || (borderRadius && borderRadius !== "0px" ? borderRadius : undefined),
-    borderBottomRightRadius: borderRadiusBottomRight || (borderRadius && borderRadius !== "0px" ? borderRadius : undefined),
-    borderBottomLeftRadius: borderRadiusBottomLeft || (borderRadius && borderRadius !== "0px" ? borderRadius : undefined),
-    boxShadow: boxShadow || undefined,
+    // Border and shadow follow the same after-the-spread rule as the layout
+    // and size keys above: the block's own Style-tab value where set, then the
+    // generic panel's, and only then nothing. Resolving straight to undefined
+    // discarded every Border and Box-Shadow set from the panel on a Section —
+    // the panel wrote them correctly, this object then dropped them.
+    borderStyle: (borderStyle && borderStyle !== "none" ? borderStyle : undefined) ?? (wrapperProps?.style?.borderStyle as CSSProperties["borderStyle"]),
+    borderTopWidth: (borderStyle && borderStyle !== "none" ? borderWidthTop || borderWidth : undefined) ?? (wrapperProps?.style?.borderTopWidth as CSSProperties["borderTopWidth"]),
+    borderRightWidth: (borderStyle && borderStyle !== "none" ? borderWidthRight || borderWidth : undefined) ?? (wrapperProps?.style?.borderRightWidth as CSSProperties["borderRightWidth"]),
+    borderBottomWidth: (borderStyle && borderStyle !== "none" ? borderWidthBottom || borderWidth : undefined) ?? (wrapperProps?.style?.borderBottomWidth as CSSProperties["borderBottomWidth"]),
+    borderLeftWidth: (borderStyle && borderStyle !== "none" ? borderWidthLeft || borderWidth : undefined) ?? (wrapperProps?.style?.borderLeftWidth as CSSProperties["borderLeftWidth"]),
+    borderColor: (borderStyle && borderStyle !== "none" ? borderColor : undefined) ?? (wrapperProps?.style?.borderColor as CSSProperties["borderColor"]),
+    borderTopLeftRadius: borderRadiusTopLeft || (borderRadius && borderRadius !== "0px" ? borderRadius : (wrapperProps?.style?.borderTopLeftRadius as CSSProperties["borderTopLeftRadius"])),
+    borderTopRightRadius: borderRadiusTopRight || (borderRadius && borderRadius !== "0px" ? borderRadius : (wrapperProps?.style?.borderTopRightRadius as CSSProperties["borderTopRightRadius"])),
+    borderBottomRightRadius: borderRadiusBottomRight || (borderRadius && borderRadius !== "0px" ? borderRadius : (wrapperProps?.style?.borderBottomRightRadius as CSSProperties["borderBottomRightRadius"])),
+    borderBottomLeftRadius: borderRadiusBottomLeft || (borderRadius && borderRadius !== "0px" ? borderRadius : (wrapperProps?.style?.borderBottomLeftRadius as CSSProperties["borderBottomLeftRadius"])),
+    boxShadow: boxShadow || (wrapperProps?.style?.boxShadow as CSSProperties["boxShadow"]),
   };
 
   return (
@@ -594,17 +610,28 @@ function Columns({
           flexWrap: (wrapperProps?.style?.flexWrap as CSSProperties["flexWrap"]) ?? (isGrid ? undefined : wrap),
           maxWidth: contentWidth === "full" ? (wrapperProps?.style?.maxWidth as CSSProperties["maxWidth"]) : width || "1152px",
           gap: (wrapperProps?.style?.gap as CSSProperties["gap"]) ?? (gap ?? "24px"),
-        background: `var(--exr-columnsBackground, ${columnsBackground || "transparent"})`,
-        backdropFilter: columnsBackgroundBlur ? `blur(var(--exr-columnsBackgroundBlur, ${columnsBackgroundBlur.replace(/%$/, "px")}))` : undefined,
+        // As with the layout keys above: this block's own Style-tab value
+        // where set, otherwise the generic panel's. background and borderColor
+        // previously produced a value unconditionally (their `--exr-` var
+        // always has a literal fallback), so a panel Background or Border
+        // Colour on a Columns was overwritten even when the block's own
+        // control was untouched — hence the `|| transparent` guards moving
+        // inside the fallback rather than sitting on the whole expression.
+        background: columnsBackground
+          ? `var(--exr-columnsBackground, ${columnsBackground})`
+          : ((wrapperProps?.style?.background as CSSProperties["background"]) ?? "var(--exr-columnsBackground, transparent)"),
+        backdropFilter: (columnsBackgroundBlur ? `blur(var(--exr-columnsBackgroundBlur, ${columnsBackgroundBlur.replace(/%$/, "px")}))` : undefined) ?? (wrapperProps?.style?.backdropFilter as CSSProperties["backdropFilter"]),
         WebkitBackdropFilter: columnsBackgroundBlur ? `blur(var(--exr-columnsBackgroundBlur, ${columnsBackgroundBlur.replace(/%$/, "px")}))` : undefined,
-        borderStyle: columnsBorderStyle && columnsBorderStyle !== "none" ? columnsBorderStyle : undefined,
-        borderTopWidth: columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthTop, ${columnsBorderWidthTop || columnsBorderWidth || "1px"})` : undefined,
-        borderRightWidth: columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthRight, ${columnsBorderWidthRight || columnsBorderWidth || "1px"})` : undefined,
-        borderBottomWidth: columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthBottom, ${columnsBorderWidthBottom || columnsBorderWidth || "1px"})` : undefined,
-        borderLeftWidth: columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthLeft, ${columnsBorderWidthLeft || columnsBorderWidth || "1px"})` : undefined,
-        borderColor: `var(--exr-columnsBorderColor, ${columnsBorderColor || "transparent"})`,
+        borderStyle: (columnsBorderStyle && columnsBorderStyle !== "none" ? columnsBorderStyle : undefined) ?? (wrapperProps?.style?.borderStyle as CSSProperties["borderStyle"]),
+        borderTopWidth: (columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthTop, ${columnsBorderWidthTop || columnsBorderWidth || "1px"})` : undefined) ?? (wrapperProps?.style?.borderTopWidth as CSSProperties["borderTopWidth"]),
+        borderRightWidth: (columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthRight, ${columnsBorderWidthRight || columnsBorderWidth || "1px"})` : undefined) ?? (wrapperProps?.style?.borderRightWidth as CSSProperties["borderRightWidth"]),
+        borderBottomWidth: (columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthBottom, ${columnsBorderWidthBottom || columnsBorderWidth || "1px"})` : undefined) ?? (wrapperProps?.style?.borderBottomWidth as CSSProperties["borderBottomWidth"]),
+        borderLeftWidth: (columnsBorderStyle && columnsBorderStyle !== "none" ? `var(--exr-columnsBorderWidthLeft, ${columnsBorderWidthLeft || columnsBorderWidth || "1px"})` : undefined) ?? (wrapperProps?.style?.borderLeftWidth as CSSProperties["borderLeftWidth"]),
+        borderColor: columnsBorderColor
+          ? `var(--exr-columnsBorderColor, ${columnsBorderColor})`
+          : ((wrapperProps?.style?.borderColor as CSSProperties["borderColor"]) ?? "var(--exr-columnsBorderColor, transparent)"),
         borderRadius: columnsBorderRadius ? `var(--exr-columnsBorderRadius, ${columnsBorderRadius})` : undefined,
-        boxShadow: columnsBoxShadow ? `var(--exr-columnsBoxShadow, ${columnsBoxShadow})` : undefined,
+        boxShadow: (columnsBoxShadow ? `var(--exr-columnsBoxShadow, ${columnsBoxShadow})` : undefined) ?? (wrapperProps?.style?.boxShadow as CSSProperties["boxShadow"]),
       }}
       data-block-id={wrapperProps?.["data-block-id"]}
       data-block-type={wrapperProps?.["data-block-type"]}
@@ -7470,4 +7497,8 @@ export const BLOCK_COMPONENTS: Record<string, ComponentType<any>> = {
   SiteFooter,
   ContactPageLegacy: ContactPageContent,
   ContactFormBlock: ContactForm,
+  // IT & Technology
+  SystemStatusWidget: SystemStatusWidgetBlock,
+  ApiEndpointPreview: ApiEndpointPreviewBlock,
+  TechStackGrid: TechStackGridBlock,
 };
