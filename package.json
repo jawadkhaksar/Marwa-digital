@@ -6,7 +6,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "cross-env NODE_OPTIONS=--max-old-space-size=6144 turbo run dev",
+    "dev:admin": "cross-env NODE_OPTIONS=--max-old-space-size=6144 npm run dev --workspace=@marwa/admin",
+    "dev:web": "cross-env NODE_OPTIONS=--max-old-space-size=6144 npm run dev --workspace=@marwa/web",
+    "dev:api": "cross-env NODE_OPTIONS=--max-old-space-size=6144 npm run dev --workspace=@marwa/api",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
@@ -15,7 +18,7 @@
     "db:migrate": "npm run migrate --workspace=@marwa/db"
   },
   "devDependencies": {
-    "@types/prop-types": "^15.7.15",
+    "cross-env": "^10.1.0",
     "turbo": "^2.3.0",
     "wait-on": "^9.1.0"
   },
