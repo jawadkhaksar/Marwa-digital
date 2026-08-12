@@ -579,13 +579,21 @@ function Columns({
           // rule resolveNodeStyle emits (RESPONSIVE_LAYOUT_KEYS in the
           // admin), which overrides whatever plain value renders here at the
           // base breakpoint regardless.
-          display: isGrid ? "grid" : "flex",
-          flexDirection: isGrid ? undefined : direction,
-        justifyContent: justifyContent || "flex-start",
-        alignItems: alignItems || "stretch",
-        flexWrap: isGrid ? undefined : wrap,
-        maxWidth: contentWidth === "full" ? undefined : width || "1152px",
-        gap: gap ?? "24px",
+          // Same precedence as Section's equivalent block: the generic Layout
+          // panel's value wins where the user actually set one, otherwise this
+          // block's own Layout-tab value, otherwise the default. All of these
+          // are written after the `...wrapperProps?.style` spread above, so
+          // each fallback has to re-supply the wrapper value — resolving to a
+          // bare default (or to undefined) overwrites the panel's setting
+          // instead of leaving it in place, which is why Display, Direction,
+          // Align and Gap all appeared to do nothing on a Columns block.
+          display: (wrapperProps?.style?.display as CSSProperties["display"]) ?? (isGrid ? "grid" : "flex"),
+          flexDirection: (wrapperProps?.style?.flexDirection as CSSProperties["flexDirection"]) ?? (isGrid ? undefined : direction),
+          justifyContent: (wrapperProps?.style?.justifyContent as CSSProperties["justifyContent"]) ?? (justifyContent || "flex-start"),
+          alignItems: (wrapperProps?.style?.alignItems as CSSProperties["alignItems"]) ?? (alignItems || "stretch"),
+          flexWrap: (wrapperProps?.style?.flexWrap as CSSProperties["flexWrap"]) ?? (isGrid ? undefined : wrap),
+          maxWidth: contentWidth === "full" ? (wrapperProps?.style?.maxWidth as CSSProperties["maxWidth"]) : width || "1152px",
+          gap: (wrapperProps?.style?.gap as CSSProperties["gap"]) ?? (gap ?? "24px"),
         background: `var(--exr-columnsBackground, ${columnsBackground || "transparent"})`,
         backdropFilter: columnsBackgroundBlur ? `blur(var(--exr-columnsBackgroundBlur, ${columnsBackgroundBlur.replace(/%$/, "px")}))` : undefined,
         WebkitBackdropFilter: columnsBackgroundBlur ? `blur(var(--exr-columnsBackgroundBlur, ${columnsBackgroundBlur.replace(/%$/, "px")}))` : undefined,
