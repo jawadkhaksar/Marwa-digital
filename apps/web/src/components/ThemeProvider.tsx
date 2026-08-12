@@ -2,8 +2,10 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 
-export type Theme = "light" | "dark" | "system";
-type ResolvedTheme = "light" | "dark";
+import { DEFAULT_THEME, NO_FLASH_THEME_SCRIPT, STORAGE_KEY, type ResolvedTheme, type Theme } from "./themeConstants";
+
+export { DEFAULT_THEME, NO_FLASH_THEME_SCRIPT, STORAGE_KEY };
+export type { ResolvedTheme, Theme };
 
 interface ThemeContextValue {
   theme: Theme;
@@ -11,15 +13,13 @@ interface ThemeContextValue {
   setTheme: (theme: Theme) => void;
 }
 
-// Exported (not just module-private) so the root layout's inline no-flash
-// script — see NO_FLASH_THEME_SCRIPT below — can build the exact same
+// Re-exported from ./themeConstants so callers already importing these from
+// this module keep working; both build the exact same
 // localStorage key without duplicating the literal string.
-export const STORAGE_KEY = "theme";
 
 // The site ships light. Declared once so the client hook, the server render
 // and the no-flash inline script below can never disagree — a mismatch there
 // shows up as a visible theme flash on first paint.
-const DEFAULT_THEME: ResolvedTheme = "light";
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function systemTheme(): ResolvedTheme {
@@ -43,13 +43,13 @@ function noSubscribe() {
 }
 function getStoredTheme(): Theme {
   try {
-    return (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? "dark";
+    return (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? DEFAULT_THEME;
   } catch {
-    return "dark";
+    return DEFAULT_THEME;
   }
 }
 function getServerTheme(): Theme {
-  return "dark";
+  return DEFAULT_THEME;
 }
 function subscribeSystemTheme(callback: () => void) {
   const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -57,37 +57,22 @@ function subscribeSystemTheme(callback: () => void) {
   return () => mq.removeEventListener("change", callback);
 }
 function getServerSystemTheme(): ResolvedTheme {
-  return "dark";
+  return DEFAULT_THEME;
 }
 
 /**
- * Hand-rolled replacement for `next-themes`. Only the script *source* lives
- * here (NO_FLASH_THEME_SCRIPT below); the tag that carries it is authored as
- * a plain `<script>` in the root layout (apps/web/src/app/layout.tsx), whose
- * Server Component render is the whole point — React only warns "Scripts
- * inside React components are never executed" when it has to *create* a
- * script element during a client render, and a server-rendered tag is merely
- * hydrated.
- *
- * Two earlier approaches both hit that warning, for the same underlying
- * reason: rendering the tag from a component exported from this file (the
- * `"use client"` directive makes every export a Client Component no matter
- * where it's rendered from), and `next/script` with `strategy="beforeInteractive"`
- * (next/script is itself a Client Component, and its App Router branch
- * renders a real `<script>` that pushes onto Next's `self.__next_s` queue —
- * see node_modules/next/dist/client/script.js). The plain tag is also
- * *earlier* than beforeInteractive, which can't run until Next's runtime
- * drains that queue; here the browser executes it while parsing, before any
- * of the body paints.
+ * Hand-rolled replacement for `next-themes`. The script source and the
+ * shared defaults live in ./themeConstants (see the note there on why they
+ * cannot live in this file); this module owns the React state and the DOM
+ * sync only.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Default is "dark", not "system" — a visitor on a light-OS browser with
-  // no stored preference used to resolve to the light theme, which broke
-  // any section with a hardcoded dark background (its text pulls the
-  // theme-flipping --foreground/--ink-muted tokens, which go near-black in
-  // light mode and become nearly invisible against that fixed-dark section).
-  // The toggle can still switch a visitor to light; this only changes the
-  // unset, first-visit default.
+  // Default is DEFAULT_THEME, not "system" — resolving an unset preference
+  // from the OS means a visitor's first paint depends on their machine, and
+  // the site's sections are authored against one ground. The toggle can still
+  // switch a visitor to the other theme; this only fixes the unset,
+  // first-visit default. Read from the shared constant rather than repeating
+  // a literal, so this can't drift out of step with the no-flash script.
   const storedTheme = useSyncExternalStore(noSubscribe, getStoredTheme, getServerTheme);
   const systemPreference = useSyncExternalStore(subscribeSystemTheme, systemTheme, getServerSystemTheme);
   const [themeOverride, setThemeOverride] = useState<Theme | null>(null);
@@ -119,4 +104,3 @@ export function useTheme(): ThemeContextValue {
 }
 
 /** Inlined into the root layout's own plain `<script>` tag — see the doc comment above. */
-export const NO_FLASH_THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("${STORAGE_KEY}")||"light";var r=t==="system"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;document.documentElement.classList.add(r);}catch(e){}})();`;

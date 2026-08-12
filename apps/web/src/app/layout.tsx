@@ -7,7 +7,11 @@ import { SmoothScrollProvider } from "@/components/SmoothScrollProvider";
 import { CustomCursor } from "@/components/CustomCursor";
 import { CursorGlow } from "@/components/CursorGlow";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
-import { ThemeProvider, NO_FLASH_THEME_SCRIPT } from "@/components/ThemeProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
+// Imported from themeConstants, NOT re-exported through ThemeProvider: that
+// module is "use client", so a Server Component importing from it receives a
+// client reference rather than the string itself.
+import { NO_FLASH_THEME_SCRIPT } from "@/components/themeConstants";
 import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { api } from "@/lib/api";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
@@ -83,13 +87,24 @@ export default async function RootLayout({
       className={`${outfit.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground" suppressHydrationWarning>
-        {/* A plain <script>, NOT next/script: this layout is a Server
-            Component, so the tag is only ever server-rendered and then
-            hydrated, never *created* during a client render — which is the
-            only thing React's "Scripts inside React components are never
-            executed" warning fires on. See the doc comment on
-            NO_FLASH_THEME_SCRIPT in ThemeProvider.tsx. */}
-        <script id="no-flash-theme" dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME_SCRIPT }} />
+        {/* The script tag is emitted as raw markup on a wrapper rather than
+            rendered as a <script> element, and NOT via next/script. See the
+            doc comment on NO_FLASH_THEME_SCRIPT in ThemeProvider.tsx for why
+            next/script is wrong here; this wrapper is about React.
+
+            React refuses to create <script> elements during a client render —
+            it substitutes a <div> and logs "Scripts inside React components
+            are never executed". Server-rendered markup is unaffected (the
+            browser executes it while parsing, which is what makes this
+            no-flash), but React re-creates this subtree on every dev Fast
+            Refresh, so the warning fired constantly in development.
+
+            Emitting the tag as innerHTML on a wrapper means React only ever
+            handles a plain <div> — the exact element it would have
+            substituted anyway — so behaviour is identical and the warning is
+            gone. `hidden` keeps the wrapper out of the body's flex flow;
+            parser-executed scripts run regardless of CSS visibility. */}
+        <div hidden dangerouslySetInnerHTML={{ __html: `<script id="no-flash-theme">${NO_FLASH_THEME_SCRIPT}</script>` }} />
         <ThemeProvider>
           <AnalyticsTracker
             cookieDays={settings?.analyticsCookieDays ?? 30}
