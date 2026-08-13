@@ -1,6 +1,10 @@
 import type { LayoutDocument, SiteTemplateType, SiteTemplateCondition } from "@marwa/builder";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+// 127.0.0.1, not localhost: Node 18+ resolves "localhost" IPv6-first (::1)
+// per RFC 8305, which fails outright against a server bound only to IPv4 —
+// a real source of intermittent ECONNREFUSED/"fetch failed" in dev on
+// Windows even when the API is actually up and listening.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:4000";
 
 // ── Blog ─────────────────────────────────────────────────────────────────
 
@@ -360,6 +364,48 @@ export interface SearchResult {
   pages: SearchPageResult[];
 }
 
+// ── IT Infrastructure & System Status ───────────────────────────────────
+export type ServiceStatusValue = "OPERATIONAL" | "DEGRADED" | "DOWNTIME";
+export type IncidentStatusValue = "INVESTIGATING" | "IDENTIFIED" | "MONITORING" | "RESOLVED";
+export type IncidentSeverityValue = "MINOR" | "MAJOR" | "CRITICAL";
+
+export interface SystemStatusService {
+  key: string;
+  name: string;
+  description: string | null;
+  status: ServiceStatusValue;
+  latencyMs: number | null;
+  updatedAt: string;
+}
+
+export interface SystemIncidentUpdate {
+  id: string;
+  status: IncidentStatusValue;
+  message: string;
+  createdAt: string;
+}
+
+export interface SystemStatusIncident {
+  id: string;
+  title: string;
+  severity: IncidentSeverityValue;
+  status: IncidentStatusValue;
+  affectedServices: string[];
+  updates: SystemIncidentUpdate[];
+  startedAt: string;
+}
+
+export interface SystemStatusFeed {
+  overall: ServiceStatusValue;
+  services: SystemStatusService[];
+  incidents: SystemStatusIncident[];
+}
+
+export interface ServiceLatencySample {
+  latencyMs: number;
+  recordedAt: string;
+}
+
 class ApiError extends Error {
   constructor(
     public status: number,
@@ -460,6 +506,12 @@ export const api = {
   getCollectionItems: (key: string, params?: { limit?: number }) =>
     request<CollectionItemsResult>(`/api/collections/${key}/items${params?.limit ? `?limit=${params.limit}` : ""}`),
   search: (query: string) => request<SearchResult>(`/api/search?q=${encodeURIComponent(query)}`),
+  // Public system-status feed (see the SystemStatusWidget block) — mounted
+  // at the root like /health, not under /api, since it's server.ts's own
+  // unauthenticated diagnostic surface rather than a resource router.
+  getSystemStatus: () => request<SystemStatusFeed>("/status"),
+  getServiceLatency: (key: string, limit?: number) =>
+    request<ServiceLatencySample[]>(`/status/${key}/latency${limit ? `?limit=${limit}` : ""}`),
 };
 
 export { ApiError };

@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 // Admin-uploaded media (vehicles, tours, pages, gallery) is served from the
 // API host, not bundled with the web app — needs an explicit remotePattern
 // for next/image to optimize it. `images.domains` is deprecated in Next 16.
-const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000");
+const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:4000");
 // The admin origin allowed to frame this site (its Visual Builder embeds a
 // live preview — see the frame-ancestors note below). ADMIN_URL is the
 // documented setting; NEXT_PUBLIC_ADMIN_URL is accepted as an alias, and on
@@ -42,7 +42,11 @@ const CSP = [
   `img-src 'self' data: blob: https: ${apiUrl.origin}`,
   "font-src 'self' https://fonts.gstatic.com data:",
   `connect-src 'self' ${apiUrl.origin} https://maps.googleapis.com https://translate.googleapis.com https://translate-pa.googleapis.com https://translate.google.com https://www.google.com https://www.gstatic.com https://api.stripe.com`,
-  "frame-src https://js.stripe.com https://www.paypal.com https://www.google.com",
+  // youtube.com/player.vimeo.com: embed origins the Video and VideoPlaylist
+  // blocks build iframe src values from (see extractYouTubeId/extractVimeoId
+  // in blockComponents.tsx) — without these, any page using either block
+  // with a YouTube/Vimeo URL has its embed silently blocked by this policy.
+  "frame-src https://js.stripe.com https://www.paypal.com https://www.google.com https://www.youtube.com https://player.vimeo.com",
   // The admin's Visual Builder embeds this site in a live-preview <iframe>
   // (apps/admin/src/app/builder/[pageId]/page.tsx) — a blanket 'none'/DENY
   // here would silently break that. Nothing else should ever frame this site.
@@ -64,6 +68,14 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@marwa/builder"],
+  // Caps the worker pool Next spawns for compilation (webpack/Turbopack) so
+  // local dev doesn't fan out across every core and starve the rest of the
+  // machine — this app's dev server otherwise saturates CPU/RAM alongside
+  // the sibling admin/api dev servers running at the same time.
+  experimental: {
+    cpus: 2,
+    workerThreads: false,
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
@@ -75,6 +87,12 @@ const nextConfig: NextConfig = {
         port: apiUrl.port,
         pathname: "/uploads/**",
       },
+      // Stock photos used by the demo/showcase content generator
+      // (packages/db/scripts/showcase) — without this, any page rendering
+      // one of those posts' featuredImage through next/image 500s outright,
+      // since Next hard-fails on an unconfigured remote host rather than
+      // degrading gracefully.
+      { protocol: "https", hostname: "images.unsplash.com" },
     ],
     // Next 16 blocks image-optimizer fetches to any hostname resolving to a
     // private/local IP by default (e.g. localhost -> 127.0.0.1). The API is

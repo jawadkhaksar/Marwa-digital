@@ -10,7 +10,7 @@ import { createFormFieldTracker } from "@/lib/formAnalytics";
 import { CORE_OVERRIDE_SLUGS } from "@/lib/coreLayoutOverride";
 import { GoogleFontLink } from "@/components/builder/GoogleFontLink";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:4000";
 
 declare global {
   interface Window {

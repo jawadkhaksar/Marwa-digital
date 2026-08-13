@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { ensureSession, checkExclusionParam, isTrackingExcluded, getSessionId, getDeviceType } from "@/lib/analytics";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:4000";
 
 interface AnalyticsTrackerProps {
   cookieDays: number;
