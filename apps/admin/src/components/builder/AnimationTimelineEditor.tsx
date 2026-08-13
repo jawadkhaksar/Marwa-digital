@@ -909,7 +909,18 @@ export function AnimationTimelineEditor({
   }
 
   function updateClip(layerId: string, clipId: string, start: number, end: number) {
-    setLayers(p => p.map(l => l.id !== layerId ? l : { ...l, clips: l.clips.map(c => c.id !== clipId ? c : { ...c, start, end }) }));
+    setLayers(p => {
+      // ClipBar's onPointerMove calls this on every pointer event, but the
+      // caller snaps to the grid first, so most of those events resolve to the
+      // value the clip already has. Rebuilding the array anyway produced a new
+      // state object each time, which re-rendered the bar and repositioned it
+      // under a captured pointer — feeding the next event straight back in and
+      // tripping React's "Maximum update depth exceeded". Returning the same
+      // reference on a no-op lets React skip the render entirely.
+      const clip = p.find(l => l.id === layerId)?.clips.find(c => c.id === clipId);
+      if (!clip || (clip.start === start && clip.end === end)) return p;
+      return p.map(l => l.id !== layerId ? l : { ...l, clips: l.clips.map(c => c.id !== clipId ? c : { ...c, start, end }) });
+    });
   }
   function updateKfTime(layerId: string, trackId: string, kfId: string, time: number) {
     setLayers(p => p.map(l => l.id !== layerId ? l : {
