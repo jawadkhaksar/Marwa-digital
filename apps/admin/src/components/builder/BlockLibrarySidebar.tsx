@@ -21,32 +21,32 @@ const CATEGORY_CONFIG: Record<
   layout: {
     label: "LAYOUT",
     order: 1,
-    accentColor: "text-[#ffb900]",
-    badgeBg: "bg-[#ffb900]/10 text-[#ffb900] border-[#ffb900]/20",
+    accentColor: "text-amber-400",
+    badgeBg: "bg-amber-400/10 text-amber-400 border-amber-400/20",
   },
   theme: {
     label: "THEME ELEMENTS",
     order: 2,
-    accentColor: "text-[#ffb900]",
-    badgeBg: "bg-[#ffb900]/10 text-[#ffb900] border-[#ffb900]/20",
+    accentColor: "text-amber-400",
+    badgeBg: "bg-amber-400/10 text-amber-400 border-amber-400/20",
   },
   content: {
     label: "CONTENT",
     order: 3,
-    accentColor: "text-[#ffb900]",
-    badgeBg: "bg-[#ffb900]/10 text-[#ffb900] border-[#ffb900]/20",
+    accentColor: "text-amber-400",
+    badgeBg: "bg-amber-400/10 text-amber-400 border-amber-400/20",
   },
   collection: {
     label: "UTILITIES & DYNAMIC",
     order: 4,
-    accentColor: "text-[#ffb900]",
-    badgeBg: "bg-[#ffb900]/10 text-[#ffb900] border-[#ffb900]/20",
+    accentColor: "text-amber-400",
+    badgeBg: "bg-amber-400/10 text-amber-400 border-amber-400/20",
   },
   section: {
     label: "SECTIONS",
     order: 5,
-    accentColor: "text-[#ffb900]",
-    badgeBg: "bg-[#ffb900]/10 text-[#ffb900] border-[#ffb900]/20",
+    accentColor: "text-amber-400",
+    badgeBg: "bg-amber-400/10 text-amber-400 border-amber-400/20",
   },
 };
 
@@ -72,6 +72,9 @@ const BLOCK_ALIASES: Record<string, string[]> = {
   FormBlock: ["input", "contact", "submit", "fields"],
   NavMenu: ["menu", "header", "links", "navigation"],
   SiteLogo: ["logo", "brand", "header", "identity"],
+  SystemStatusWidget: ["uptime", "health", "incident", "monitoring", "status page", "outage"],
+  ApiEndpointPreview: ["curl", "snippet", "rest", "documentation", "swagger", "code"],
+  TechStackGrid: ["stack", "architecture", "framework", "integration", "badges"],
 };
 
 /** Precise Lucide Icon mapping per module type */
@@ -178,6 +181,11 @@ const BLOCK_ICON_NAME_MAP: Record<string, string> = {
   Columns: "Columns2",
   Spacer: "MoveVertical",
   Divider: "Minus",
+
+  // E. IT & Technology
+  SystemStatusWidget: "Activity",
+  ApiEndpointPreview: "Terminal",
+  TechStackGrid: "Cpu",
 };
 
 function resolveModuleIcon(blockType: string, label?: string): React.ElementType {
@@ -494,15 +502,15 @@ export function BlockLibrarySidebar({ onInsert, className = "", previewFrameRef,
                             onInsert(block.type);
                           }}
                           title={`Insert ${block.label} (Drag to canvas or click to add)`}
-                          className="group relative flex flex-col items-center justify-center text-center p-2.5 rounded-xl border border-white/5 bg-[#141417] hover:bg-[#1a1a1e] hover:border-[#ffb900]/40 transition-all cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-[#ffb900]/5 select-none active:scale-[0.98]"
+                          className="group relative flex flex-col items-center justify-center text-center p-2.5 rounded-xl border border-white/5 bg-[#141417] hover:bg-[#1a1a1e] hover:border-amber-400/40 transition-all cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-amber-400/5 select-none active:scale-[0.98]"
                         >
-                          {/* Monochromatic #ffb900 Icon Badge Container */}
-                          <div className="w-8 h-8 rounded-md bg-[#ffb900]/10 border border-[#ffb900]/20 flex items-center justify-center mb-2 group-hover:border-[#ffb900]/50 group-hover:bg-[#ffb900]/20 transition-colors">
-                            <IconComponent className="w-4 h-4 text-[#ffb900] transition-colors" strokeWidth={1.75} />
+                          {/* Brand-accent (amber-* remaps to Electric Indigo app-wide) Icon Badge Container */}
+                          <div className="w-8 h-8 rounded-md bg-amber-400/10 border border-amber-400/20 flex items-center justify-center mb-2 group-hover:border-amber-400/50 group-hover:bg-amber-400/20 transition-colors">
+                            <IconComponent className="w-4 h-4 text-amber-400 transition-colors" strokeWidth={1.75} />
                           </div>
 
                           {/* Block Label */}
-                          <span className="text-[10px] font-medium text-zinc-300 group-hover:text-[#ffb900] leading-tight transition-colors line-clamp-2">
+                          <span className="text-[10px] font-medium text-zinc-300 group-hover:text-amber-400 leading-tight transition-colors line-clamp-2">
                             {block.label}
                           </span>
                         </button>
