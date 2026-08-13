@@ -1,6 +1,7 @@
+import { randomUUID } from "crypto";
 import { Router } from "express";
 import { z } from "zod";
-import { prisma, Prisma } from "@marwa/db";
+import { prisma } from "@marwa/db";
 import { formatZodError } from "../lib/zodError";
 import { extractIp, extractGeo, extractReferringDomain, parseUserAgent, analyticsLimiter } from "../lib/analyticsUtils";
 import { dispatchTrigger } from "../services/workflowEngine";
@@ -195,11 +196,30 @@ const recordingSchema = z.object({
 });
 
 /**
- * Appends one batch of rrweb events to this session's recording (creating
- * it on the first batch), recomputing duration/eventCount/hasRageClicks from
- * the merged event list every time. apps/web's tracker calls this on route
- * changes and again via sendBeacon on unload, so a single visit's recording
- * is assembled from several small POSTs rather than one giant one at the end.
+ * Hard ceiling on stored events per session. rrweb emits on every mouse move
+ * and DOM mutation, so an unbounded recording grows without limit — one
+ * session in this database reached 19,878 events and a 7.4MB row. Past this
+ * point the recording is already far more than anyone replays, so further
+ * batches are acknowledged and dropped rather than stored.
+ */
+const MAX_RECORDING_EVENTS = 5000;
+
+/**
+ * Appends one batch of rrweb events to this session's recording, creating it
+ * on the first batch.
+ *
+ * The append happens inside Postgres via jsonb `||`, and this handler never
+ * loads the stored events into memory. It used to: it read the whole existing
+ * array, concatenated in JS, and wrote the entire merged array back on every
+ * batch. Since apps/web flushes every 10 seconds, that made each flush read,
+ * parse, re-serialize and rewrite the entire recording so far — quadratic
+ * work that, on the 7.4MB recording above, meant multi-megabyte reads and
+ * writes every ten seconds while merely browsing, with the parsed object
+ * graph costing far more in the API process than the row does on disk. It
+ * also raced: two concurrent flushes could both miss the existing row and
+ * both try to create it.
+ *
+ * ON CONFLICT makes it atomic, so the race is gone too.
  */
 analyticsRouter.post("/recording", async (req, res) => {
   const parsed = recordingSchema.safeParse(req.body);
@@ -209,20 +229,35 @@ analyticsRouter.post("/recording", async (req, res) => {
   const session = await prisma.visitorSession.findUnique({ where: { sessionId }, select: { sessionId: true, contactId: true } });
   if (!session) return res.status(404).json({ error: "Unknown session" });
 
-  const existing = await prisma.sessionRecording.findUnique({ where: { sessionId } });
+  // Selects the flag alone, deliberately not `events` — reading the row via
+  // Prisma's default selection would detoast the whole blob and reintroduce
+  // exactly the cost this endpoint exists to avoid.
+  const existing = await prisma.sessionRecording.findUnique({
+    where: { sessionId },
+    select: { hasRageClicks: true },
+  });
   const incomingEvents = incoming as RRWebEventLike[];
-  const merged = existing ? [...(existing.events as RRWebEventLike[]), ...incomingEvents] : incomingEvents;
-
-  const duration = computeDurationSeconds(merged);
   const wasRageClicking = Boolean(existing?.hasRageClicks);
   const hasRageClicks = wasRageClicking || detectRageClicks(incomingEvents);
 
-  const eventsJson = merged as unknown as Prisma.InputJsonValue;
-  await prisma.sessionRecording.upsert({
-    where: { sessionId },
-    create: { sessionId, events: eventsJson, duration, eventCount: merged.length, hasRageClicks },
-    update: { events: eventsJson, duration, eventCount: merged.length, hasRageClicks },
-  });
+  const incomingJson = JSON.stringify(incomingEvents);
+
+  // duration is wall-clock since the recording row was created rather than
+  // the span between first and last event timestamps. The two agree closely
+  // for a real session, and this one needs no access to the event array.
+  await prisma.$executeRaw`
+    INSERT INTO "SessionRecording" ("id", "sessionId", "events", "duration", "eventCount", "hasRageClicks", "createdAt", "updatedAt")
+    VALUES (${randomUUID()}, ${sessionId}, ${incomingJson}::jsonb, ${computeDurationSeconds(incomingEvents)}, ${incomingEvents.length}, ${hasRageClicks}, now(), now())
+    ON CONFLICT ("sessionId") DO UPDATE SET
+      "events" = CASE
+        WHEN "SessionRecording"."eventCount" >= ${MAX_RECORDING_EVENTS} THEN "SessionRecording"."events"
+        ELSE "SessionRecording"."events" || EXCLUDED."events"
+      END,
+      "eventCount" = LEAST("SessionRecording"."eventCount" + ${incomingEvents.length}, ${MAX_RECORDING_EVENTS}),
+      "hasRageClicks" = "SessionRecording"."hasRageClicks" OR EXCLUDED."hasRageClicks",
+      "duration" = GREATEST("SessionRecording"."duration", EXTRACT(EPOCH FROM (now() - "SessionRecording"."createdAt"))::int),
+      "updatedAt" = now()
+  `;
 
   // Fires the Marketing Automation trigger once, the moment a session first
   // crosses into rage-click territory — not on every later batch that still

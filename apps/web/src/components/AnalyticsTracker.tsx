@@ -174,6 +174,13 @@ function AnalyticsTrackerInner({ cookieDays, excludeAdminTraffic, recordingEnabl
   // which rrweb already masks by default) before it ever leaves the browser.
   useEffect(() => {
     if (disabledRef.current || !recordingEnabled) return;
+    // Never record in development. rrweb emits on every mouse move and DOM
+    // mutation, and a dev session is the worst case for it: Fast Refresh
+    // rewrites the DOM constantly, and the developer is the only "visitor",
+    // so the recording has no analytical value at all. Leaving it on meant a
+    // local machine paid the full capture + upload + storage cost of watching
+    // its own developer work.
+    if (process.env.NODE_ENV !== "production") return;
     let stop: (() => void) | undefined;
     let cancelled = false;
 
