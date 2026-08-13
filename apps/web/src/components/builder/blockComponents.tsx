@@ -138,6 +138,44 @@ function combineBgLayers(layers: BgLayer[]): Pick<CSSProperties, "backgroundImag
   };
 }
 
+/**
+ * Splits a CSS `background` shorthand into its image layers and its colour,
+ * breaking on top-level commas only so `rgba(0,0,0,.5)` stays intact.
+ *
+ * Section emits background-image (and friends) for its layer system, so also
+ * emitting the `background` shorthand put both on one element. React warns
+ * about that, but the real damage was silent: the shorthand is written first
+ * and the longhand after, so `background-image: var(--exr-backgroundImage,
+ * none)` overwrote any gradient the shorthand carried, leaving only its
+ * colour. Every gradient section background was being erased — on the home
+ * page alone, seven of them.
+ *
+ * Feeding the shorthand's own gradients into the layer list instead keeps
+ * exactly one property responsible for background-image.
+ */
+function splitBackgroundShorthand(value: string): { color?: string; images: string[] } {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const ch of value) {
+    if (ch === "(") depth++;
+    else if (ch === ")") depth--;
+    if (ch === "," && depth === 0) {
+      parts.push(current.trim());
+      current = "";
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) parts.push(current.trim());
+
+  const isImage = (p: string) => /(?:^|\s|-)(?:linear|radial|conic|repeating-linear|repeating-radial|repeating-conic)-gradient\s*\(|url\s*\(|image-set\s*\(/i.test(p);
+  const images = parts.filter(isImage);
+  const colours = parts.filter((p) => !isImage(p));
+  // A shorthand carries at most one colour, and it is written last.
+  return { color: colours.length > 0 ? colours[colours.length - 1] : undefined, images };
+}
+
 function Section({
   layoutMode,
   direction,
@@ -287,7 +325,22 @@ function Section({
 
   // Overlay listed first paints on top, matching the visual stacking order
   // (overlay tints/dims the base image beneath it).
-  const bgLayers = [overlayLayer, baseLayer].filter((l): l is BgLayer => Boolean(l));
+  // The author's own `background` (block prop, or the generic panel's value)
+  // is split so its gradients join the layer list rather than being emitted
+  // as a competing shorthand — see splitBackgroundShorthand.
+  const authorBackground = background || (wrapperProps?.style?.background as string | undefined);
+  const authorBg = authorBackground ? splitBackgroundShorthand(String(authorBackground)) : { color: undefined, images: [] as string[] };
+  const authorLayers: BgLayer[] = authorBg.images.map((image) => ({
+    image,
+    position: "center center",
+    attachment: "scroll",
+    repeat: "no-repeat",
+    size: "cover",
+  }));
+
+  // Author gradients sit beneath a configured background image, which is
+  // where the shorthand used to paint them relative to everything else.
+  const bgLayers = [overlayLayer, baseLayer, ...authorLayers].filter((l): l is BgLayer => Boolean(l));
   const combinedBg = combineBgLayers(bgLayers);
 
   // blur() only accepts a <length> (px/em/rem/vw) — never a percentage, unlike
@@ -427,8 +480,18 @@ function Section({
     // writing `undefined` here would otherwise discard the spread value.
     minWidth: (wrapperProps?.style?.minWidth as CSSProperties["minWidth"]) ?? (parentIsFlexRow ? 0 : undefined),
 
-    background: background || wrapperProps?.style?.background,
-    ...(hasBlurredImage ? undefined : combinedBg),
+    // backgroundColor, never the `background` shorthand: the shorthand also
+    // resets background-image, which collides with the layer longhands spread
+    // in on the next line. Any gradient the author wrote is already in
+    // `authorLayers`, so only the colour is left to apply here.
+    //
+    // The blurred-image branch skips the layer spread entirely (the image is
+    // painted on its own absolutely-positioned element instead), so it keeps
+    // the full shorthand — there is nothing for it to collide with there, and
+    // a gradient must still reach the element somehow.
+    ...(hasBlurredImage
+      ? { background: authorBackground }
+      : { backgroundColor: authorBg.color, ...combinedBg }),
 
     // Border and shadow follow the same after-the-spread rule as the layout
     // and size keys above: the block's own Style-tab value where set, then the
