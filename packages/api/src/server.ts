@@ -12,6 +12,8 @@ import { corsOptions, generalLimiter } from "./lib/security";
 import { authRouter } from "./routes/auth";
 import { contentRouter } from "./routes/content";
 import { formsRouter } from "./routes/forms";
+import { webhooksRouter } from "./routes/webhooks";
+import { publicStatusRouter } from "./routes/publicStatus";
 import { publicSiteTemplatesRouter } from "./routes/siteTemplates";
 import { publicStyleClassesRouter } from "./routes/styleClasses";
 import { publicTimedAnimationsRouter } from "./routes/timedAnimations";
@@ -51,6 +53,8 @@ import { adminHeatmapsRouter } from "./routes/admin/heatmaps";
 import { adminFormAnalyticsRouter } from "./routes/admin/formAnalytics";
 import { adminOrganizationsRouter } from "./routes/admin/organizations";
 import { adminBackupsRouter } from "./routes/admin/backups";
+import { adminSystemStatusRouter } from "./routes/admin/systemStatus";
+import { adminSystemLogsRouter } from "./routes/admin/systemLogs";
 import { cronRouter } from "./routes/cron";
 import { requireAdmin, requireRole } from "./lib/auth";
 import { auditLog } from "./lib/auditLogger";
@@ -90,6 +94,12 @@ app.use("/api", generalLimiter);
 app.use(express.json({ limit: "20mb" }));
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
+
+// Public system status feed (service health + open incidents) — the data
+// source for a status page/banner (see the SystemStatusWidget builder
+// block). See routes/publicStatus.ts for why this is unauthenticated, what
+// it deliberately does and doesn't return, and why it's its own router file.
+app.use("/status", publicStatusRouter);
 
 /**
  * Database reachability probe.
@@ -192,6 +202,7 @@ app.use("/api/auth", authRouter);
 app.use("/api", contentRouter);
 app.use("/api", blogRouter);
 app.use("/api/forms", formsRouter);
+app.use("/api/webhooks", webhooksRouter);
 app.use("/api/site-templates", publicSiteTemplatesRouter);
 app.use("/api/style-classes", publicStyleClassesRouter);
 app.use("/api/timed-animations", publicTimedAnimationsRouter);
@@ -228,7 +239,11 @@ app.use("/api/admin/tags", requireAdmin, auditLog("Tag"), adminTagsRouter);
 app.use("/api/admin/email-templates", requireAdmin, auditLog("EmailTemplate"), adminEmailTemplatesRouter);
 app.use("/api/admin/cache", requireAdmin, adminCacheRouter);
 app.use("/api/admin/collections", requireAdmin, auditLog("Collection"), adminCollectionsRouter);
-app.use("/api/admin/analytics", requireAdmin, adminAnalyticsRouter);
+// Was deliberately unwrapped while this router was read-only (see the note
+// above). It now deletes session recordings, so it takes auditLog like every
+// other router that removes admin-managed data — the only mutating routes in
+// it are those deletions, so nothing else gets spuriously logged.
+app.use("/api/admin/analytics", requireAdmin, auditLog("SessionRecording"), adminAnalyticsRouter);
 app.use("/api/admin/revisions", requireAdmin, adminRevisionsRouter);
 app.use("/api/admin/auth", requireAdmin, adminSecurityRouter);
 app.use("/api/admin/audit-logs", requireAdmin, adminAuditLogsRouter);
@@ -246,7 +261,9 @@ app.use("/api/admin/form-analytics", requireAdmin, adminFormAnalyticsRouter);
 // "content" edits, and org creation stamps its own OWNER membership in the
 // same call — a generic CREATE/UPDATE row would add noise, not signal.
 app.use("/api/admin/organizations", requireAdmin, adminOrganizationsRouter);
-app.use("/api/admin/system/backups", requireAdmin, requireRole("ADMIN"), adminBackupsRouter);
+app.use("/api/admin/system/backups", requireAdmin, requireRole("ADMIN"), resolveOrganization, adminBackupsRouter);
+app.use("/api/admin/system/status", requireAdmin, auditLog("SystemStatus"), adminSystemStatusRouter);
+app.use("/api/admin/system/logs", requireAdmin, adminSystemLogsRouter);
 
 app.use((err: Error & { status?: number; statusCode?: number; type?: string }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

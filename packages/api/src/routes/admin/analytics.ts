@@ -1,7 +1,9 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma, Prisma } from "@marwa/db";
 import { classifyChannel } from "../../lib/analyticsUtils";
 import { guessNameEmail } from "../../lib/crm";
+import { formatZodError } from "../../lib/zodError";
 
 export const adminAnalyticsRouter = Router();
 
@@ -492,4 +494,68 @@ adminAnalyticsRouter.get("/recordings/:sessionId", async (req, res) => {
   });
   if (!recording) return res.status(404).json({ error: "Recording not found" });
   res.json(recording);
+});
+
+/**
+ * GET /recordings/:sessionId/export — the same payload as above, plus the
+ * visitor context the list shows, sent as a file download.
+ *
+ * Separate from the playback endpoint rather than a query flag on it because
+ * this one sets Content-Disposition, and a stray `?download=1` on the URL the
+ * player fetches would otherwise turn playback into a file save.
+ */
+adminAnalyticsRouter.get("/recordings/:sessionId/export", async (req, res) => {
+  const recording = await prisma.sessionRecording.findUnique({
+    where: { sessionId: req.params.sessionId },
+    include: {
+      session: {
+        select: {
+          ipAddress: true, country: true, city: true, deviceType: true, browser: true, os: true,
+          referrer: true, landingPage: true, createdAt: true,
+          contact: { select: { firstName: true, lastName: true, email: true } },
+          pageViews: { select: { path: true, title: true, duration: true, createdAt: true }, orderBy: { createdAt: "asc" } },
+        },
+      },
+    },
+  });
+  if (!recording) return res.status(404).json({ error: "Recording not found" });
+
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Content-Disposition", `attachment; filename="session-${recording.sessionId}.json"`);
+  res.json({
+    exportedAt: new Date().toISOString(),
+    // rrweb's own player consumes a bare event array, so keep `events` at a
+    // predictable top-level key — a re-import or an external rrweb player
+    // only has to reach for this one field.
+    sessionId: recording.sessionId,
+    recordedAt: recording.createdAt,
+    duration: recording.duration,
+    eventCount: recording.eventCount,
+    hasRageClicks: recording.hasRageClicks,
+    visitor: recording.session,
+    events: recording.events,
+  });
+});
+
+const recordingBulkDeleteSchema = z.object({ sessionIds: z.array(z.string().min(1)).min(1) });
+
+/**
+ * Deletes recordings only — the VisitorSession, its page views and any
+ * associated Contact are deliberately left intact, since those carry the
+ * analytics and lead history that the recording is merely an attachment to.
+ * SessionRecording is the only thing pointing at the session here, so nothing
+ * can hit a foreign key.
+ */
+adminAnalyticsRouter.post("/recordings/bulk-delete", async (req, res) => {
+  const parsed = recordingBulkDeleteSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: formatZodError(parsed.error) });
+  const result = await prisma.sessionRecording.deleteMany({ where: { sessionId: { in: parsed.data.sessionIds } } });
+  res.json({ deleted: result.count });
+});
+
+adminAnalyticsRouter.delete("/recordings/:sessionId", async (req, res) => {
+  const existing = await prisma.sessionRecording.findUnique({ where: { sessionId: req.params.sessionId }, select: { id: true } });
+  if (!existing) return res.status(404).json({ error: "Recording not found" });
+  await prisma.sessionRecording.delete({ where: { sessionId: req.params.sessionId } });
+  res.status(204).end();
 });

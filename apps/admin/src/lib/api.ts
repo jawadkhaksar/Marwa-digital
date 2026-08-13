@@ -903,7 +903,7 @@ export interface AiAltTextResult {
 
 // ── Visual Marketing Automation ─────────────────────────────────────────
 
-export type WorkflowTriggerType = "FORM_SUBMITTED" | "TAG_ADDED" | "DEAL_STAGE_CHANGED" | "SESSION_RAGE_CLICK";
+export type WorkflowTriggerType = "FORM_SUBMITTED" | "TAG_ADDED" | "DEAL_STAGE_CHANGED" | "SESSION_RAGE_CLICK" | "WEBHOOK_RECEIVED";
 
 export interface WorkflowNode {
   id: string;
@@ -1034,6 +1034,75 @@ export interface SystemBackupListResult {
   limit: number;
   totalStorageBytes: number;
   lastBackupAt: string | null;
+}
+
+// ── IT Infrastructure & System Status ───────────────────────────────────
+export type ServiceStatusValue = "OPERATIONAL" | "DEGRADED" | "DOWNTIME";
+export type IncidentStatusValue = "INVESTIGATING" | "IDENTIFIED" | "MONITORING" | "RESOLVED";
+export type IncidentSeverityValue = "MINOR" | "MAJOR" | "CRITICAL";
+export type LogLevelValue = "INFO" | "WARN" | "ERROR" | "CRITICAL";
+
+export interface MonitoredService {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  status: ServiceStatusValue;
+  latencyMs: number | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ServiceLatencySample {
+  id: string;
+  serviceKey: string;
+  latencyMs: number;
+  recordedAt: string;
+}
+
+export interface SystemIncidentUpdate {
+  id: string;
+  status: IncidentStatusValue;
+  message: string;
+  createdAt: string;
+}
+
+export interface SystemIncident {
+  id: string;
+  title: string;
+  severity: IncidentSeverityValue;
+  status: IncidentStatusValue;
+  affectedServices: string[];
+  updates: SystemIncidentUpdate[];
+  startedAt: string;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SystemIncidentListResult {
+  items: SystemIncident[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface SystemEvent {
+  id: string;
+  level: LogLevelValue;
+  source: string;
+  message: string;
+  payload: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface SystemEventListResult {
+  items: SystemEvent[];
+  total: number;
+  page: number;
+  limit: number;
+  sources: string[];
 }
 
 // ── API ──────────────────────────────────────────────────────────────────
@@ -1330,6 +1399,32 @@ export const api = {
     return request<SessionRecordingsResult>(`/api/admin/analytics/recordings${query ? `?${query}` : ""}`);
   },
   getSessionRecording: (sessionId: string) => request<SessionRecordingDetail>(`/api/admin/analytics/recordings/${encodeURIComponent(sessionId)}`),
+  deleteSessionRecording: (sessionId: string) =>
+    request<void>(`/api/admin/analytics/recordings/${encodeURIComponent(sessionId)}`, { method: "DELETE" }),
+  bulkDeleteSessionRecordings: (sessionIds: string[]) =>
+    request<{ deleted: number }>("/api/admin/analytics/recordings/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({ sessionIds }),
+    }),
+  /**
+   * Fetches the export as a Blob rather than going through `request`, which
+   * always parses JSON — a recording can be many megabytes, and the point
+   * here is to hand the bytes straight to a download without materialising
+   * them as parsed objects first. Auth still has to be attached by hand for
+   * the same reason: a plain link or window.open sends no Authorization
+   * header, so the endpoint would just reject it.
+   */
+  exportSessionRecording: async (sessionId: string): Promise<Blob> => {
+    const token = getToken();
+    const res = await fetch(`${API_URL}/api/admin/analytics/recordings/${encodeURIComponent(sessionId)}/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      throw new ApiError(res.status, body.error ?? "Export failed");
+    }
+    return res.blob();
+  },
 
   // ── CRM: Contacts, Pipelines & Deals ──────────────────────────────────
   getContacts: (params?: { page?: number; limit?: number; search?: string; status?: ContactStatus; tag?: string }) => {
@@ -1480,6 +1575,44 @@ export const api = {
   generateBackup: (type: BackupType) => request<SystemBackup>("/api/admin/system/backups/generate", { method: "POST", body: JSON.stringify({ type }) }),
   restoreBackup: (id: string) => request<{ ok: true; restoredFrom: string }>(`/api/admin/system/backups/${id}/restore`, { method: "POST" }),
   deleteBackup: (id: string) => request<void>(`/api/admin/system/backups/${id}`, { method: "DELETE" }),
+
+  // ── IT Infrastructure & System Status ────────────────────────────────────
+  getMonitoredServices: () => request<MonitoredService[]>("/api/admin/system/status/services"),
+  createMonitoredService: (data: { key: string; name: string; description?: string; status?: ServiceStatusValue; order?: number }) =>
+    request<MonitoredService>("/api/admin/system/status/services", { method: "POST", body: JSON.stringify(data) }),
+  updateMonitoredService: (id: string, data: Partial<{ name: string; description: string; status: ServiceStatusValue; order: number; latencyMs: number | null }>) =>
+    request<MonitoredService>(`/api/admin/system/status/services/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteMonitoredService: (id: string) => request<void>(`/api/admin/system/status/services/${id}`, { method: "DELETE" }),
+  getServiceLatency: (key: string, limit?: number) =>
+    request<ServiceLatencySample[]>(`/api/admin/system/status/services/${key}/latency${limit ? `?limit=${limit}` : ""}`),
+
+  getIncidents: (params?: { page?: number; limit?: number; status?: IncidentStatusValue }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.status) qs.set("status", params.status);
+    const query = qs.toString();
+    return request<SystemIncidentListResult>(`/api/admin/system/status/incidents${query ? `?${query}` : ""}`);
+  },
+  createIncident: (data: { title: string; severity?: IncidentSeverityValue; affectedServices?: string[]; message: string }) =>
+    request<SystemIncident>("/api/admin/system/status/incidents", { method: "POST", body: JSON.stringify(data) }),
+  addIncidentUpdate: (id: string, data: { status: IncidentStatusValue; message: string }) =>
+    request<SystemIncident>(`/api/admin/system/status/incidents/${id}/updates`, { method: "POST", body: JSON.stringify(data) }),
+  deleteIncident: (id: string) => request<void>(`/api/admin/system/status/incidents/${id}`, { method: "DELETE" }),
+
+  // ── Developer Log & Audit Event Viewer ───────────────────────────────────
+  getSystemLogs: (params?: { page?: number; limit?: number; level?: LogLevelValue; source?: string; search?: string; startDate?: string; endDate?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.set("page", String(params.page));
+    if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.level) qs.set("level", params.level);
+    if (params?.source) qs.set("source", params.source);
+    if (params?.search) qs.set("search", params.search);
+    if (params?.startDate) qs.set("startDate", params.startDate);
+    if (params?.endDate) qs.set("endDate", params.endDate);
+    const query = qs.toString();
+    return request<SystemEventListResult>(`/api/admin/system/logs${query ? `?${query}` : ""}`);
+  },
   downloadBackup: async (backup: SystemBackup) => {
     const token = getToken();
     const organizationId = getActiveOrganizationId();
