@@ -289,6 +289,31 @@ export function NavMenuBlock({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open, mobileMenuStyle]);
 
+  // Style-tab values reach this block as `--exr-{key}` custom properties set
+  // on its wrapper, and every `var(--exr-…, fallback)` below relies on those
+  // inheriting down. The mobile panels below are portaled to <body> to escape
+  // ancestor backdrop-filters, which also takes them out of the wrapper's
+  // subtree — so the variables never reach them and the fallback (the prop,
+  // which stays empty for Style-tab fields) won wins instead. That is why
+  // Mobile Menu Background and Flyout Background looked inert no matter what
+  // colour was chosen.
+  //
+  // Resolving them off an element that IS inside the wrapper and passing the
+  // computed value in explicitly restores the link. Done in an effect rather
+  // than during render because getComputedStyle is a browser-only read.
+  const [portalVars, setPortalVars] = useState<{ mobileMenuBackground?: string; flyoutBackground?: string }>({});
+  useEffect(() => {
+    if (!open) return;
+    const el = triggerWrapRef.current;
+    if (!el) return;
+    const cs = getComputedStyle(el);
+    const read = (name: string) => cs.getPropertyValue(name).trim() || undefined;
+    setPortalVars({
+      mobileMenuBackground: read("--exr-mobileMenuBackground"),
+      flyoutBackground: read("--exr-flyoutBackground"),
+    });
+  }, [open]);
+
   const iconSize = triggerIconSize || "24px";
   const uid = `navmenu-h${hashString(`${menuHoverTextColor ?? ""}${menuHoverBackground ?? ""}${dropdownHoverTextColor ?? ""}${dropdownHoverBackground ?? ""}${triggerHoverColor ?? ""}${triggerHoverBackground ?? ""}${linkHoverEffect ?? ""}`)}`;
 
@@ -632,7 +657,7 @@ export function NavMenuBlock({
               position: "fixed",
               inset: 0,
               zIndex: 9999,
-              background: `var(--exr-flyoutBackground, ${flyoutBackground || "rgba(10,10,10,0.97)"})`,
+              background: portalVars.flyoutBackground || flyoutBackground || "rgba(10,10,10,0.97)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -686,7 +711,7 @@ export function NavMenuBlock({
               maxHeight: `calc(100vh - ${mobilePanelTop}px)`,
               overflowY: "auto",
               zIndex: 9999,
-              background: `var(--exr-mobileMenuBackground, ${mobileMenuBackground || "rgba(10,10,10,0.97)"})`,
+              background: portalVars.mobileMenuBackground || mobileMenuBackground || "rgba(10,10,10,0.97)",
               padding: "12px 0",
             }}
           >
