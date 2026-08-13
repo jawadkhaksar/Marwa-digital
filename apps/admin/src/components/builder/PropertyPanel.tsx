@@ -32,6 +32,7 @@ import {
   Trash2,
   Crop,
   MousePointer,
+  Puzzle,
 } from "lucide-react";
 import { api, type Menu } from "@/lib/api";
 import { useStyleClasses } from "./useStyleClasses";
@@ -95,6 +96,7 @@ import {
   type StaticTourItem,
   type DefinitionRowItem,
   type TourInfoFact,
+  type TechStackItem,
   MULTI_BUTTON_ICON_POSITION_VALUES,
   BG_POSITION_VALUES,
   BG_ATTACHMENT_VALUES,
@@ -327,7 +329,7 @@ function MenuPickerField({ value, onChange }: { value: string; onChange: (v: str
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
       >
         <option value="">(Primary Menu)</option>
         {menus.map((m) => (
@@ -517,7 +519,7 @@ function LabeledNumber({ label, value, onChange }: { label: string; value: strin
         type="number"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+        className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
       />
     </div>
   );
@@ -1619,8 +1621,6 @@ function WebflowHoverAnimationsSection({
   styleSource: LayoutNodeStyle | undefined;
   onCommit: (patch: LayoutNodeStyle) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(true);
-
   const hoverStyle = styleSource?.hover ?? {};
   const hoverAnimation = styleSource?.hoverAnimation ?? "none";
   const hoverDuration = styleSource?.hoverTransitionDuration ?? "300ms";
@@ -1655,21 +1655,8 @@ function WebflowHoverAnimationsSection({
   ];
 
   return (
-    <div className="rounded-lg border border-[#ffb900]/30 bg-zinc-950/60 overflow-hidden text-xs">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
-      >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#ffb900]">
-          <Sparkles className="h-3.5 w-3.5" />
-          Hover Animation Engine
-        </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
-      </button>
-
-      {isOpen && (
-        <div className="flex flex-col gap-4 p-3 border-t border-[#ffb900]/20">
+    <AccordionSection title="Hover Effects & Transitions" icon={Sparkles}>
+      <div className="flex flex-col gap-4">
 
           {/* Preset Selector */}
           <div>
@@ -1679,7 +1666,7 @@ function WebflowHoverAnimationsSection({
             <select
               value={hoverAnimation}
               onChange={(e) => onCommit({ hoverAnimation: e.target.value as HoverAnimation })}
-              className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-100 focus:border-[#ffb900] focus:outline-none [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
+              className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-zinc-100 focus:border-amber-400 focus:outline-none [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
             >
               <option value="none" className="bg-zinc-900 text-zinc-100">None (Custom Hover Only)</option>
               <optgroup label="Motion &amp; Bounce">
@@ -1743,7 +1730,7 @@ function WebflowHoverAnimationsSection({
                   step={50}
                   value={parseDurationMs(hoverDuration)}
                   onChange={(e) => onCommit({ hoverTransitionDuration: `${e.target.value}ms` })}
-                  className="w-full min-w-0 accent-[#ffb900] bg-zinc-800 h-0.5 rounded-lg cursor-pointer"
+                  className="w-full min-w-0 accent-amber-400 bg-zinc-800 h-0.5 rounded-lg cursor-pointer"
                 />
               </div>
               {/* Delay */}
@@ -1768,7 +1755,7 @@ function WebflowHoverAnimationsSection({
                   step={50}
                   value={parseDelayMs(hoverDelay)}
                   onChange={(e) => onCommit({ hoverTransitionDelay: `${e.target.value}ms` })}
-                  className="w-full min-w-0 accent-[#ffb900] bg-zinc-800 h-0.5 rounded-lg cursor-pointer"
+                  className="w-full min-w-0 accent-amber-400 bg-zinc-800 h-0.5 rounded-lg cursor-pointer"
                 />
               </div>
               {/* Easing */}
@@ -1777,7 +1764,7 @@ function WebflowHoverAnimationsSection({
                 <select
                   value={hoverEasing}
                   onChange={(e) => onCommit({ hoverTransitionEasing: e.target.value })}
-                  className="w-full min-w-0 rounded-md border border-zinc-800 bg-zinc-950 px-1.5 py-1 text-[10px] text-zinc-100 focus:border-[#ffb900] focus:outline-none [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
+                  className="w-full min-w-0 rounded-md border border-zinc-800 bg-zinc-950 px-1.5 py-1 text-[10px] text-zinc-100 focus:border-amber-400 focus:outline-none [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
                 >
                   {EASING_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value} className="bg-zinc-900 text-zinc-100">{o.label}</option>
@@ -1812,7 +1799,7 @@ function WebflowHoverAnimationsSection({
                     type="range" min={0} max={100} step={1}
                     value={parseFloat(String(hoverStyle.opacity ?? "100"))}
                     onChange={(e) => patchHover({ opacity: e.target.value })}
-                    className="flex-1 min-w-0 accent-[#ffb900] bg-zinc-800 h-0.5 rounded-lg cursor-pointer"
+                    className="flex-1 min-w-0 accent-amber-400 bg-zinc-800 h-0.5 rounded-lg cursor-pointer"
                   />
                   <div className="flex shrink-0 items-center rounded-md border border-zinc-800 bg-zinc-950 px-2 py-0.5">
                     <input
@@ -1835,7 +1822,7 @@ function WebflowHoverAnimationsSection({
                   type="text" placeholder="e.g. 12px or 50%"
                   value={String(hoverStyle.borderRadius ?? "")}
                   onChange={(e) => patchHover({ borderRadius: e.target.value })}
-                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-[#ffb900] focus:outline-none"
+                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-amber-400 focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-[100px_1fr] items-center gap-2">
@@ -1844,7 +1831,7 @@ function WebflowHoverAnimationsSection({
                   type="text" placeholder="0 8px 32px rgba(0,0,0,0.4)"
                   value={String(hoverStyle.boxShadow ?? "")}
                   onChange={(e) => patchHover({ boxShadow: e.target.value })}
-                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-[#ffb900] focus:outline-none"
+                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-amber-400 focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-[100px_1fr] items-center gap-2">
@@ -1853,7 +1840,7 @@ function WebflowHoverAnimationsSection({
                   type="text" placeholder="scale(1.05) translateY(-4px)"
                   value={String(hoverStyle.transform ?? "")}
                   onChange={(e) => patchHover({ transform: e.target.value })}
-                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-[#ffb900] focus:outline-none"
+                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-amber-400 focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-[100px_1fr] items-center gap-2">
@@ -1862,7 +1849,7 @@ function WebflowHoverAnimationsSection({
                   type="text" placeholder="brightness(1.2) saturate(1.3)"
                   value={String(hoverStyle.filter ?? "")}
                   onChange={(e) => patchHover({ filter: e.target.value })}
-                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-[#ffb900] focus:outline-none"
+                  className="w-full min-w-0 truncate rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-xs text-zinc-100 font-mono focus:border-amber-400 focus:outline-none"
                 />
               </div>
             </div>
@@ -1878,9 +1865,8 @@ function WebflowHoverAnimationsSection({
             </button>
           )}
 
-        </div>
-      )}
-    </div>
+      </div>
+    </AccordionSection>
   );
 }
 
@@ -2579,7 +2565,7 @@ export function PropertyPanel({
                   type="datetime-local"
                   value={typeof node.props.targetDate === "string" && node.props.targetDate ? node.props.targetDate.slice(0, 16) : ""}
                   onChange={(e) => onChangeProps({ targetDate: e.target.value ? new Date(e.target.value).toISOString() : "" })}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 />
               </div>
             ) : node.type === "Hotspot" && field.key === "points" ? (
@@ -2594,6 +2580,20 @@ export function PropertyPanel({
                   { key: "y", label: "Y position % (0-100)", type: "text" },
                   { key: "title", label: "Title", type: "text" },
                   { key: "description", label: "Description", type: "textarea" },
+                ]}
+              />
+            ) : node.type === "TechStackGrid" && field.key === "items" ? (
+              <SimpleRepeaterEditor<TechStackItem>
+                key={field.key}
+                value={Array.isArray(node.props.items) ? (node.props.items as TechStackItem[]) : []}
+                onChange={(items) => onChangeProps({ items })}
+                defaultItem={{ icon: "FaCube", name: "New Technology", category: "", description: "" }}
+                itemLabel={(item) => item.name || "Technology"}
+                fields={[
+                  { key: "icon", label: "Icon", type: "icon" },
+                  { key: "name", label: "Name", type: "text" },
+                  { key: "category", label: "Category (e.g. Frontend, Database)", type: "text" },
+                  { key: "description", label: "Tooltip description", type: "textarea" },
                 ]}
               />
             ) : node.type === "FeaturedRoutesCarousel" && field.key === "routes" ? (
@@ -2818,6 +2818,7 @@ export function PropertyPanel({
           />
 
           {styleFields.length > 0 && (
+          <AccordionSection title="Module Settings" icon={Puzzle}>
           <div className="flex flex-col gap-3">
           {node.type === "Image" && !node.props.caption && styleFields.some((f) => f.key.startsWith("caption")) && (
             <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-300">
@@ -3007,7 +3008,7 @@ export function PropertyPanel({
                   <select
                     value={typeof binding("backgroundPosition").value === "string" ? (binding("backgroundPosition").value as string) : "center"}
                     onChange={(e) => binding("backgroundPosition").onChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_POSITION_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -3021,7 +3022,7 @@ export function PropertyPanel({
                   <select
                     value={typeof binding("backgroundSize").value === "string" ? (binding("backgroundSize").value as string) : "cover"}
                     onChange={(e) => binding("backgroundSize").onChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_SIZE_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -3035,7 +3036,7 @@ export function PropertyPanel({
                   <select
                     value={typeof binding("backgroundRepeat").value === "string" ? (binding("backgroundRepeat").value as string) : "no-repeat"}
                     onChange={(e) => binding("backgroundRepeat").onChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_REPEAT_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -3049,7 +3050,7 @@ export function PropertyPanel({
                   <select
                     value={typeof binding("backgroundAttachment").value === "string" ? (binding("backgroundAttachment").value as string) : "scroll"}
                     onChange={(e) => binding("backgroundAttachment").onChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_ATTACHMENT_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -3177,7 +3178,7 @@ export function PropertyPanel({
                 <select
                   value={typeof binding("imageBorderStyle").value === "string" ? (binding("imageBorderStyle").value as string) : "none"}
                   onChange={(e) => binding("imageBorderStyle").onChange(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 >
                   {["none", "solid", "dashed", "dotted", "double"].map((v) => (
                     <option key={v} value={v}>
@@ -3775,7 +3776,7 @@ export function PropertyPanel({
                 <select
                   value={typeof node.props.linkHoverEffect === "string" ? node.props.linkHoverEffect : "none"}
                   onChange={(e) => onChangeProps({ linkHoverEffect: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 >
                   {NAV_MENU_HOVER_EFFECT_VALUES.map((v) => (
                     <option key={v} value={v}>
@@ -3806,7 +3807,7 @@ export function PropertyPanel({
                 <select
                   value={typeof binding("dropdownBorderStyle").value === "string" ? (binding("dropdownBorderStyle").value as string) : "none"}
                   onChange={(e) => binding("dropdownBorderStyle").onChange(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 >
                   {BORDER_STYLE_VALUES.map((v) => (
                     <option key={v} value={v}>
@@ -3905,7 +3906,7 @@ export function PropertyPanel({
                     <select
                       value={typeof binding("dividerStyle").value === "string" ? (binding("dividerStyle").value as string) : "solid"}
                       onChange={(e) => binding("dividerStyle").onChange(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                     >
                       {DIVIDER_STYLE_VALUES.map((v) => (
                         <option key={v} value={v}>
@@ -4115,7 +4116,7 @@ export function PropertyPanel({
                 <select
                   value={typeof binding("counterBorderStyle").value === "string" ? (binding("counterBorderStyle").value as string) : "none"}
                   onChange={(e) => binding("counterBorderStyle").onChange(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 >
                   {["none", "solid", "dashed", "dotted", "double"].map((v) => (
                     <option key={v} value={v}>
@@ -4231,7 +4232,7 @@ export function PropertyPanel({
                 <select
                   value={typeof binding("tabBorderStyle").value === "string" ? (binding("tabBorderStyle").value as string) : "solid"}
                   onChange={(e) => binding("tabBorderStyle").onChange(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 >
                   {["none", "solid", "dashed", "dotted"].map((v) => (
                     <option key={v} value={v}>
@@ -4292,7 +4293,7 @@ export function PropertyPanel({
                 <select
                   value={typeof binding("contentBorderStyle").value === "string" ? (binding("contentBorderStyle").value as string) : "none"}
                   onChange={(e) => binding("contentBorderStyle").onChange(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 >
                   {["none", "solid", "dashed", "dotted"].map((v) => (
                     <option key={v} value={v}>
@@ -4350,7 +4351,7 @@ export function PropertyPanel({
                 <select
                   value={typeof binding("columnsBorderStyle").value === "string" ? (binding("columnsBorderStyle").value as string) : "none"}
                   onChange={(e) => binding("columnsBorderStyle").onChange(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                 >
                   {["none", "solid", "dashed", "dotted", "double"].map((v) => (
                     <option key={v} value={v}>
@@ -4470,6 +4471,7 @@ export function PropertyPanel({
             />
           )}
           </div>
+          </AccordionSection>
           )}
         </div>
       )}
@@ -4915,7 +4917,7 @@ function AnimationCard({
 
       <div className="mb-3">
         <label className="mb-1 block text-[11px] text-zinc-500">Action</label>
-        <select value={actionValue} onChange={(e) => applyAction(e.target.value)} className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs">
+        <select value={actionValue} onChange={(e) => applyAction(e.target.value)} className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none">
           <option value="__custom__">Custom (edit values below)</option>
           <optgroup label="Custom animation">
             <option value="__timed__">Start an animation…</option>
@@ -4990,7 +4992,7 @@ function AnimationCard({
             min={0}
             value={animation.duration}
             onChange={(e) => onChange({ duration: Number(e.target.value) })}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
           />
         </div>
         <div>
@@ -5001,7 +5003,7 @@ function AnimationCard({
             min={0}
             value={animation.delay}
             onChange={(e) => onChange({ delay: Number(e.target.value) })}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
           />
         </div>
       </div>
@@ -5011,7 +5013,7 @@ function AnimationCard({
         <select
           value={animation.ease}
           onChange={(e) => onChange({ ease: e.target.value as AnimationEase })}
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
         >
           {EASE_OPTIONS.map((ease) => (
             <option key={ease} value={ease}>
@@ -5033,7 +5035,7 @@ function AnimationCard({
                 step={1}
                 value={animation.repeat ?? 0}
                 onChange={(e) => onChange({ repeat: Number(e.target.value) })}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
               />
             </div>
             <div>
@@ -5044,7 +5046,7 @@ function AnimationCard({
                 step={0.1}
                 value={animation.repeatDelay ?? 0}
                 onChange={(e) => onChange({ repeatDelay: Number(e.target.value) })}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
               />
             </div>
           </div>
@@ -5074,7 +5076,7 @@ function AnimationCard({
                 step={0.05}
                 value={animation.staggerAmount ?? 0.1}
                 onChange={(e) => onChange({ staggerAmount: Number(e.target.value) })}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
               />
             </div>
           )}
@@ -5087,7 +5089,7 @@ function AnimationCard({
           <select
             value={animation.splitText ?? "none"}
             onChange={(e) => onChange({ splitText: e.target.value as SplitTextMode })}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
           >
             {SPLIT_TEXT_VALUES.map((mode) => (
               <option key={mode} value={mode}>
@@ -5104,7 +5106,7 @@ function AnimationCard({
                 step={0.02}
                 value={animation.staggerAmount ?? 0.1}
                 onChange={(e) => onChange({ staggerAmount: Number(e.target.value) })}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
               />
             </div>
           )}
@@ -5117,7 +5119,7 @@ function AnimationCard({
           <select
             value={animation.clipReveal ?? "none"}
             onChange={(e) => onChange({ clipReveal: e.target.value as ClipRevealDirection })}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
           >
             {CLIP_REVEAL_VALUES.map((dir) => (
               <option key={dir} value={dir}>
@@ -5150,7 +5152,7 @@ function AnimationCard({
                 value={animation.scrollStart ?? ""}
                 onChange={(e) => onChange({ scrollStart: e.target.value })}
                 placeholder="top 85%"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
               />
             </div>
             <div>
@@ -5160,7 +5162,7 @@ function AnimationCard({
                 value={animation.scrollEnd ?? ""}
                 onChange={(e) => onChange({ scrollEnd: e.target.value })}
                 placeholder="top 40%"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
               />
             </div>
           </div>
@@ -5173,7 +5175,7 @@ function AnimationCard({
           <select
             value={animation.mouseScope ?? "viewport"}
             onChange={(e) => onChange({ mouseScope: e.target.value as MouseScope })}
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
           >
             <option value="viewport">Viewport (background parallax)</option>
             <option value="element">This Block Only (magnetic hover)</option>
@@ -5192,7 +5194,7 @@ function AnimationCard({
               min={0}
               value={animation.mouseStrength ?? 30}
               onChange={(e) => onChange({ mouseStrength: Number(e.target.value) })}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs focus:border-amber-400 focus:outline-none"
             />
           </div>
         </div>
@@ -5421,8 +5423,8 @@ function ShadowNumberRow({
   return (
     <>
       <label className="text-xs text-zinc-400">{label} (px)</label>
-      <input type="number" value={fromValue} onChange={(e) => onFromChange(Number(e.target.value) || 0)} className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs" />
-      <input type="number" value={toValue} onChange={(e) => onToChange(Number(e.target.value) || 0)} className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs" />
+      <input type="number" value={fromValue} onChange={(e) => onFromChange(Number(e.target.value) || 0)} className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs focus:border-amber-400 focus:outline-none" />
+      <input type="number" value={toValue} onChange={(e) => onToChange(Number(e.target.value) || 0)} className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs focus:border-amber-400 focus:outline-none" />
     </>
   );
 }
@@ -5459,14 +5461,14 @@ function TweenFieldRow({
         step={field.step}
         value={from[field.key] ?? ""}
         onChange={(e) => onChange({ ...from, [field.key]: e.target.value === "" ? undefined : Number(e.target.value) }, to)}
-        className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs"
+        className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs focus:border-amber-400 focus:outline-none"
       />
       <input
         type="number"
         step={field.step}
         value={to[field.key] ?? ""}
         onChange={(e) => onChange(from, { ...to, [field.key]: e.target.value === "" ? undefined : Number(e.target.value) })}
-        className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs"
+        className="w-full rounded border border-zinc-700 bg-zinc-950 px-1.5 py-1 text-center text-xs focus:border-amber-400 focus:outline-none"
       />
     </>
   );
@@ -5649,7 +5651,7 @@ function PxInput({ label, value, onChange }: { label: string; value?: string; on
             const trimmed = e.target.value.trim();
             if (/^-?\d+(\.\d+)?$/.test(trimmed)) onChange(`${trimmed}px`);
           }}
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 pr-7 text-xs"
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 pr-7 text-xs focus:border-amber-400 focus:outline-none"
         />
         <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600">PX</span>
       </div>
@@ -5892,7 +5894,7 @@ function SectionOverlayField({
                     type="number"
                     value={gradientStop1}
                     onChange={(e) => onGradientStop1Change(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   />
                 </LabeledField>
               </div>
@@ -5903,7 +5905,7 @@ function SectionOverlayField({
                     type="number"
                     value={gradientStop2}
                     onChange={(e) => onGradientStop2Change(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   />
                 </LabeledField>
               </div>
@@ -5926,7 +5928,7 @@ function SectionOverlayField({
                   <select
                     value={gradientType}
                     onChange={(e) => onGradientTypeChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_GRADIENT_TYPE_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -5941,7 +5943,7 @@ function SectionOverlayField({
                       type="number"
                       value={gradientAngle}
                       onChange={(e) => onGradientAngleChange(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                     />
                   </LabeledField>
                 )}
@@ -5958,7 +5960,7 @@ function SectionOverlayField({
                   <select
                     value={position}
                     onChange={(e) => onPositionChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_POSITION_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -5969,7 +5971,7 @@ function SectionOverlayField({
                 </div>
                 <div>
                   <label className="mb-1 block text-xs text-zinc-400">Size</label>
-                  <select value={size} onChange={(e) => onSizeChange(e.target.value)} className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm">
+                  <select value={size} onChange={(e) => onSizeChange(e.target.value)} className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none">
                     {BG_SIZE_VALUES.map((v) => (
                       <option key={v} value={v}>
                         {v}
@@ -5982,7 +5984,7 @@ function SectionOverlayField({
                   <select
                     value={repeat}
                     onChange={(e) => onRepeatChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_REPEAT_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -5996,7 +5998,7 @@ function SectionOverlayField({
                   <select
                     value={attachment}
                     onChange={(e) => onAttachmentChange(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm"
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
                   >
                     {BG_ATTACHMENT_VALUES.map((v) => (
                       <option key={v} value={v}>
@@ -6540,7 +6542,7 @@ function WebflowEffectsSection({
   };
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <WebflowEasingEditorModal
         isOpen={isEasingEditorOpen}
         onClose={() => setIsEasingEditorOpen(false)}
@@ -6554,13 +6556,13 @@ function WebflowEffectsSection({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <Sparkles className="h-3.5 w-3.5 text-zinc-400" />
-          Effects
+          Effects &amp; Shadows
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
 
       {isOpen && (
@@ -7224,17 +7226,17 @@ function WebflowCustomPropertiesSection({
   }
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <Code className="h-3.5 w-3.5 text-zinc-400" />
           Custom Properties
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
       {isOpen && (
         <div className="flex flex-col gap-2 p-3 border-t border-zinc-800/60">
@@ -7298,17 +7300,17 @@ function WebflowCustomAttributesSection({
   }
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <Code className="h-3.5 w-3.5 text-zinc-400" />
           Custom attributes
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
       {isOpen && (
         <div className="flex flex-col gap-2 p-3 border-t border-zinc-800/60">
@@ -7372,17 +7374,17 @@ function WebflowBackgroundsSection({
   const cleanUrl = extractUrl(currentBgImage);
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <Box className="h-3.5 w-3.5 text-zinc-400" />
           Backgrounds
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
 
       {isOpen && (
@@ -7694,17 +7696,17 @@ function WebflowBordersSection({
   };
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <LayoutGrid className="h-3.5 w-3.5 text-zinc-400" />
-          Borders
+          Borders &amp; Corners
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
 
       {isOpen && (
@@ -7931,17 +7933,17 @@ function WebflowTypographySection({
   const activeShadowParsed = shadows.length > 0 ? parseTextShadow(shadows[0]) : { x: 0, y: 1, blur: 1, color: "rgba(0, 0, 0, 0.2)" };
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <Type className="h-3.5 w-3.5 text-zinc-400" />
           Typography
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
 
       {isOpen && (
@@ -8499,17 +8501,17 @@ function WebflowSizeSection({
   const currentBoxSizing = String(activeStyle.boxSizing || "border-box").toLowerCase();
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <Maximize2 className="h-3.5 w-3.5 text-zinc-400" />
-          Size
+          Sizing &amp; Overflow
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
 
       {isOpen && (
@@ -8695,17 +8697,17 @@ function WebflowPositionSection({
   };
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <Pin className="h-3.5 w-3.5 text-zinc-400" />
           Position
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
 
       {isOpen && (
@@ -8881,7 +8883,6 @@ function WebflowSpacingSection({
   activeStyle: ResponsiveStyleFields;
   patchStyle: (patch: ResponsiveStyleFields) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(true);
   const [isSpacingSynced, setIsSpacingSynced] = useState(false);
   const [activeZone, setActiveZone] = useState<keyof ResponsiveStyleFields | null>("marginBottom");
 
@@ -8990,44 +8991,29 @@ function WebflowSpacingSection({
   const isMarginZone = activeZone ? activeZone.startsWith("margin") : false;
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
-      <div className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors">
+    <AccordionSection
+      title="Spacing (Box Model)"
+      icon={Move}
+      badge={
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsSpacingSynced(!isSpacingSynced);
+          }}
+          title={isSpacingSynced ? "Sync All Sides (Active)" : "Sync All Sides (Disabled)"}
+          className={`p-1 rounded transition-colors ${
+            isSpacingSynced ? "text-amber-400 bg-amber-500/10 border border-amber-500/30" : "text-zinc-500 hover:text-zinc-300"
+          }`}
         >
-          <Move className="h-3.5 w-3.5 text-zinc-400" />
-          Spacing
+          <svg className="h-3.5 w-3.5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" strokeDasharray="3 3" />
+            <rect x="7" y="7" width="10" height="10" rx="1" />
+          </svg>
         </button>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setIsSpacingSynced(!isSpacingSynced)}
-            title={isSpacingSynced ? "Sync All Sides (Active)" : "Sync All Sides (Disabled)"}
-            className={`p-1 rounded transition-colors ${
-              isSpacingSynced ? "text-amber-400 bg-amber-500/10 border border-amber-500/30" : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            <svg className="h-3.5 w-3.5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" strokeDasharray="3 3" />
-              <rect x="7" y="7" width="10" height="10" rx="1" />
-            </svg>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-zinc-400 hover:text-zinc-200"
-          >
-            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
-
-      {isOpen && (
-        <div className="flex flex-col gap-3 p-3 border-t border-zinc-800/60">
+      }
+    >
+        <div className="flex flex-col gap-3">
           <div className="relative w-full rounded-lg border border-zinc-800 bg-zinc-900/90 pt-3 px-3 pb-4 select-none flex flex-col items-center">
             <span className="absolute top-2 left-2.5 text-[9px] font-bold text-zinc-500 tracking-wider">MARGIN</span>
 
@@ -9265,8 +9251,7 @@ function WebflowSpacingSection({
             </div>
           )}
         </div>
-      )}
-    </div>
+    </AccordionSection>
   );
 }
 
@@ -9358,17 +9343,17 @@ function WebflowLayoutSection({
         : "None";
 
   return (
-    <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/40 overflow-hidden text-xs">
+    <div className="rounded-xl border border-white/[0.08] bg-zinc-900/60 overflow-hidden text-xs">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2.5 font-semibold text-zinc-100 transition-colors hover:bg-zinc-900/60"
+        className="flex w-full items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-zinc-200 transition-colors duration-200 hover:bg-white/[0.04]"
       >
-        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-200">
+        <span className="flex items-center gap-2">
           <LayoutGrid className="h-3.5 w-3.5 text-zinc-400" />
-          Layout
+          Layout &amp; Display
         </span>
-        {isOpen ? <ChevronDown className="h-4 w-4 text-zinc-400" /> : <ChevronRight className="h-4 w-4 text-zinc-400" />}
+        <ChevronDown className={`h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-amber-400" : ""}`} />
       </button>
 
       {isOpen && (

@@ -129,7 +129,7 @@ export function ColorField({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className={`relative shrink-0 overflow-hidden rounded-lg border border-zinc-700 ${compact ? "h-6 w-6" : "h-8 w-8"}`}
+          className={`relative shrink-0 overflow-hidden rounded-lg border border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${compact ? "h-6 w-6" : "h-8 w-8"}`}
           title="Open color picker"
         >
           {/* Checkerboard sits behind the color swatch — a semi-transparent color lets it show through, an opaque one fully covers it. Both as absolutely-positioned layers so the color is never painted over by the pattern. */}
@@ -142,7 +142,7 @@ export function ColorField({
           onChange={(e) => onChange(e.target.value)}
           onBlur={sanitizeOnBlur}
           placeholder={placeholder}
-          className={`w-full rounded-lg border border-zinc-700 bg-zinc-950 text-sm ${compact ? "px-1.5 py-1 text-center text-[11px]" : "px-3 py-2"}`}
+          className={`w-full rounded-lg border border-zinc-700 bg-zinc-950 text-sm focus:border-amber-400 focus:outline-none ${compact ? "px-1.5 py-1 text-center text-[11px]" : "px-3 py-2"}`}
         />
       </div>
 
@@ -174,7 +174,7 @@ export function ColorField({
               value={value ?? ""}
               onChange={(e) => onChange(e.target.value)}
               onBlur={sanitizeOnBlur}
-              className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-center text-xs"
+              className="mt-2 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-center text-xs focus:border-amber-400 focus:outline-none"
             />
           </div>,
           document.body
