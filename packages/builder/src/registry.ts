@@ -710,6 +710,134 @@ const ctaButtonBlock = defineBlock({
   }),
 });
 
+// ── Power Button ────────────────────────────────────────────────────────
+// One button block that covers what the existing five (Button, Marketing
+// Button, Multi Buttons, PayPal, Stripe) each do a slice of. The style comes
+// from a `preset` + `size` + `shape` triple rather than a single `variant`
+// enum, so the common cases are one dropdown away while every individual
+// colour, border and hover value stays overridable underneath.
+export const POWER_BUTTON_PRESET_VALUES = ["solid", "gradient", "outline", "ghost", "soft", "link", "glass", "neon", "elevated"] as const;
+export const POWER_BUTTON_SIZE_VALUES = ["xs", "sm", "md", "lg", "xl"] as const;
+export const POWER_BUTTON_SHAPE_VALUES = ["rounded", "pill", "square"] as const;
+export const POWER_BUTTON_ICON_POSITION_VALUES = ["none", "before", "after", "only"] as const;
+export const POWER_BUTTON_HOVER_EFFECT_VALUES = ["none", "lift", "grow", "shrink", "glow", "shine", "slide", "pulse"] as const;
+export const POWER_BUTTON_ALIGN_VALUES = ["left", "center", "right", "stretch"] as const;
+
+const powerButtonBlock = defineBlock({
+  type: "PowerButton",
+  label: "Power Button",
+  category: "content",
+  icon: "sparkles",
+  defaultProps: {
+    label: "Get started" as string,
+    href: "#" as string,
+    target: "_self" as "_self" | "_blank",
+    rel: "" as string,
+    // A second line under the label, for "Buy now / free 14-day trial"
+    // style buttons that would otherwise need two stacked blocks.
+    subLabel: "" as string,
+    badge: "" as string,
+    icon: "FaArrowRight" as string,
+    iconPosition: "after" as (typeof POWER_BUTTON_ICON_POSITION_VALUES)[number],
+    iconGap: "" as string,
+
+    preset: "solid" as (typeof POWER_BUTTON_PRESET_VALUES)[number],
+    size: "md" as (typeof POWER_BUTTON_SIZE_VALUES)[number],
+    shape: "rounded" as (typeof POWER_BUTTON_SHAPE_VALUES)[number],
+    align: "left" as (typeof POWER_BUTTON_ALIGN_VALUES)[number],
+    fullWidth: false as boolean,
+
+    // Only read by the "gradient" preset; kept as plain props (not baked
+    // into `background`) so switching preset back and forth doesn't lose
+    // the gradient the user configured.
+    gradientFrom: "#2563ff" as string,
+    gradientTo: "#7c3aed" as string,
+    gradientAngle: "90" as string,
+
+    hoverEffect: "lift" as (typeof POWER_BUTTON_HOVER_EFFECT_VALUES)[number],
+    hoverBackground: "" as string,
+    hoverColor: "" as string,
+    hoverBorderColor: "" as string,
+    transitionDuration: "200ms" as string,
+
+    loading: false as boolean,
+    loadingLabel: "" as string,
+    disabled: false as boolean,
+    ariaLabel: "" as string,
+
+    // Style-tab overrides. Named to match STYLE_KEYS so the inspector files
+    // them under Style rather than Content — same convention CTAButton uses.
+    background: "" as string,
+    color: "" as string,
+    borderStyle: "none" as (typeof BORDER_STYLE_VALUES)[number],
+    borderWidth: "" as string,
+    borderColor: "" as string,
+    borderRadius: "" as string,
+    boxShadow: "" as string,
+    fontFamily: "inherit" as string,
+    fontSize: "" as string,
+    fontWeight: "600" as (typeof FONT_WEIGHT_VALUES)[number],
+    textTransform: "none" as (typeof TEXT_TRANSFORM_VALUES)[number],
+    letterSpacing: "" as string,
+    paddingTop: "" as string,
+    paddingRight: "" as string,
+    paddingBottom: "" as string,
+    paddingLeft: "" as string,
+  },
+  propsSchema: z.object({
+    label: z.string().min(1),
+    href: z.string().default("#"),
+    target: z.enum(["_self", "_blank"]).default("_self"),
+    // Only applied when the author sets it. target="_blank" gets
+    // noopener/noreferrer added automatically by the renderer regardless,
+    // so a blank-target button is never left exploitable by omission.
+    rel: z.string().optional(),
+    subLabel: z.string().optional(),
+    badge: z.string().optional(),
+    icon: z.string().optional(),
+    iconPosition: z.enum(POWER_BUTTON_ICON_POSITION_VALUES).default("after"),
+    iconGap: z.string().optional(),
+
+    preset: z.enum(POWER_BUTTON_PRESET_VALUES).default("solid"),
+    size: z.enum(POWER_BUTTON_SIZE_VALUES).default("md"),
+    shape: z.enum(POWER_BUTTON_SHAPE_VALUES).default("rounded"),
+    align: z.enum(POWER_BUTTON_ALIGN_VALUES).default("left"),
+    fullWidth: z.boolean().default(false),
+
+    gradientFrom: z.string().default("#2563ff"),
+    gradientTo: z.string().default("#7c3aed"),
+    gradientAngle: z.string().default("90"),
+
+    hoverEffect: z.enum(POWER_BUTTON_HOVER_EFFECT_VALUES).default("lift"),
+    hoverBackground: z.string().optional(),
+    hoverColor: z.string().optional(),
+    hoverBorderColor: z.string().optional(),
+    transitionDuration: z.string().default("200ms"),
+
+    loading: z.boolean().default(false),
+    loadingLabel: z.string().optional(),
+    disabled: z.boolean().default(false),
+    ariaLabel: z.string().optional(),
+
+    background: z.string().optional(),
+    color: z.string().optional(),
+    borderStyle: z.enum(BORDER_STYLE_VALUES).default("none"),
+    borderWidth: z.string().optional(),
+    borderColor: z.string().optional(),
+    borderRadius: z.string().optional(),
+    boxShadow: z.string().optional(),
+    fontFamily: z.string().default("inherit"),
+    fontSize: z.string().optional(),
+    fontWeight: z.enum(FONT_WEIGHT_VALUES).default("600"),
+    textTransform: z.enum(TEXT_TRANSFORM_VALUES).default("none"),
+    letterSpacing: z.string().optional(),
+    paddingTop: z.string().optional(),
+    paddingRight: z.string().optional(),
+    paddingBottom: z.string().optional(),
+    paddingLeft: z.string().optional(),
+  }),
+});
+
 const videoBlock = defineBlock({
   type: "Video",
   label: "Video",
@@ -9017,6 +9145,136 @@ const checklistBlock = defineBlock({
   }),
 });
 
+// ── IT & Technology ──────────────────────────────────────────────────────
+// Three additive blocks for the IT Infrastructure & System Status suite.
+// SystemStatusWidget is the one live-data block of the three — it fetches
+// from the new public /status feed at render time (see
+// apps/web/src/components/builder/SystemStatusWidgetBlock.tsx), the same
+// "props are presentation, not content" shape as Posts/CollectionList.
+// ApiEndpointPreview and TechStackGrid are ordinary authored content.
+
+const systemStatusWidgetBlock = defineBlock({
+  type: "SystemStatusWidget",
+  label: "System Status Widget",
+  category: "section",
+  icon: "activity",
+  defaultProps: {
+    heading: "System Status",
+    description: "Real-time status of every service that powers this platform.",
+    showLatencyGraph: true,
+    showIncidents: true,
+    maxIncidents: "5",
+    emptyStateMessage: "No monitored services configured yet.",
+  },
+  propsSchema: z.object({
+    heading: z.string().default("System Status"),
+    description: z.string().optional(),
+    showLatencyGraph: z.boolean().default(true),
+    showIncidents: z.boolean().default(true),
+    maxIncidents: z.string().default("5"),
+    emptyStateMessage: z.string().optional(),
+    headingColor: z.string().optional(),
+    descColor: z.string().optional(),
+    cardBackground: z.string().optional(),
+    cardBorderColor: z.string().optional(),
+    cardBorderRadius: z.string().optional(),
+    serviceNameColor: z.string().optional(),
+    serviceDescColor: z.string().optional(),
+    latencyLabelColor: z.string().optional(),
+    operationalColor: z.string().default("#10b981"),
+    degradedColor: z.string().default("#f59e0b"),
+    downtimeColor: z.string().default("#ef4444"),
+    latencyGraphColor: z.string().optional(),
+    incidentCardBackground: z.string().optional(),
+    incidentTitleColor: z.string().optional(),
+    incidentTextColor: z.string().optional(),
+    incidentBorderColor: z.string().optional(),
+  }),
+});
+
+export const API_ENDPOINT_METHOD_VALUES = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
+
+const apiEndpointPreviewBlock = defineBlock({
+  type: "ApiEndpointPreview",
+  label: "API Endpoint Preview",
+  category: "content",
+  icon: "terminal",
+  defaultProps: {
+    method: "GET" as (typeof API_ENDPOINT_METHOD_VALUES)[number],
+    path: "/api/v1/users/:id",
+    baseUrl: "https://api.example.com",
+    summary: "Get a user",
+    description: "Returns a single user by id.",
+    requestBody: "",
+    responseStatus: "200 OK",
+    responseBody: JSON.stringify({ id: "usr_123", name: "Ada Lovelace", email: "ada@example.com" }, null, 2),
+  },
+  propsSchema: z.object({
+    method: z.enum(API_ENDPOINT_METHOD_VALUES).default("GET"),
+    path: z.string().default("/"),
+    baseUrl: z.string().default("https://api.example.com"),
+    summary: z.string().optional(),
+    description: z.string().optional(),
+    requestBody: z.string().optional(),
+    responseStatus: z.string().default("200 OK"),
+    responseBody: z.string().optional(),
+    methodColor: z.string().optional(),
+    pathColor: z.string().optional(),
+    summaryColor: z.string().optional(),
+    descriptionColor: z.string().optional(),
+    responseLabelColor: z.string().optional(),
+    background: z.string().optional(),
+    borderColor: z.string().optional(),
+    borderRadius: z.string().optional(),
+    tabActiveColor: z.string().optional(),
+    tabColor: z.string().optional(),
+    codeBackground: z.string().optional(),
+  }),
+});
+
+const techStackItemSchema = z.object({
+  icon: z.string().optional(),
+  name: z.string(),
+  category: z.string().optional(),
+  description: z.string().optional(),
+});
+export type TechStackItem = z.infer<typeof techStackItemSchema>;
+
+export const TECH_STACK_COLUMNS_VALUES = ["2", "3", "4", "5", "6"] as const;
+
+const techStackGridBlock = defineBlock({
+  type: "TechStackGrid",
+  label: "Tech Stack Grid",
+  category: "section",
+  icon: "cpu",
+  defaultProps: {
+    heading: "Our Tech Stack",
+    description: "The frameworks, services, and tools this platform is built on.",
+    items: [
+      { icon: "FaReact", name: "React", category: "Frontend", description: "Component-based UI library powering every interface." },
+      { icon: "FaNodeJs", name: "Node.js", category: "Backend", description: "JavaScript runtime for the API layer." },
+      { icon: "FaDatabase", name: "PostgreSQL", category: "Database", description: "Primary relational datastore." },
+      { icon: "FaDocker", name: "Docker", category: "Infrastructure", description: "Containerized deployments." },
+    ] as TechStackItem[],
+    columns: "4" as (typeof TECH_STACK_COLUMNS_VALUES)[number],
+  },
+  propsSchema: z.object({
+    heading: z.string().optional(),
+    description: z.string().optional(),
+    items: z.array(techStackItemSchema).default([]),
+    columns: z.enum(TECH_STACK_COLUMNS_VALUES).default("4"),
+    cardBackground: z.string().optional(),
+    cardBorderColor: z.string().optional(),
+    cardBorderRadius: z.string().optional(),
+    iconColor: z.string().optional(),
+    nameColor: z.string().optional(),
+    categoryColor: z.string().optional(),
+    categoryBackground: z.string().optional(),
+    tooltipBackground: z.string().optional(),
+    tooltipColor: z.string().optional(),
+  }),
+});
+
 export const BLOCK_REGISTRY: BlockRegistry = Object.fromEntries(
   [
     sectionBlock,
@@ -9032,6 +9290,7 @@ export const BLOCK_REGISTRY: BlockRegistry = Object.fromEntries(
     postContentBlock,
     postExcerptBlock,
     ctaButtonBlock,
+    powerButtonBlock,
     videoBlock,
     iconBlock,
     counterBlock,
@@ -9114,6 +9373,9 @@ export const BLOCK_REGISTRY: BlockRegistry = Object.fromEntries(
     definitionRowsBlock,
     tourInfoSectionBlock,
     checklistBlock,
+    systemStatusWidgetBlock,
+    apiEndpointPreviewBlock,
+    techStackGridBlock,
     ...legacyBlocks,
   ].map((block) => [block.type, block])
 );

@@ -51,6 +51,7 @@ import { TabsBlock } from "@/components/builder/TabsBlock";
 import { SliderBlock } from "@/components/builder/SliderBlock";
 import { CarouselContainerBlock } from "@/components/builder/CarouselContainerBlock";
 import { TextUnfoldBlock } from "@/components/builder/TextUnfoldBlock";
+import { PowerButtonBlock } from "@/components/builder/PowerButtonBlock";
 import { FormBlock } from "@/components/builder/FormBlock";
 import { SiteLogoBlock } from "@/components/builder/SiteLogoBlock";
 import { NavMenuBlock } from "@/components/builder/NavMenuBlock";
@@ -7403,6 +7404,7 @@ export const BLOCK_COMPONENTS: Record<string, ComponentType<any>> = {
   PostContent,
   PostExcerpt,
   CTAButton,
+  PowerButton: PowerButtonBlock,
   Video,
   Icon,
   Counter,

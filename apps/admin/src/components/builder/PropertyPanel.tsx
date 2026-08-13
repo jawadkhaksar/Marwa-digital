@@ -2303,7 +2303,7 @@ export function PropertyPanel({
                   { key: "customIcon", label: "Custom Icon (SVG markup — only used when Platform is Custom)", type: "textarea", placeholder: '<svg viewBox="0 0 24 24">...</svg>' },
                 ]}
               />
-            ) : (node.type === "Icon" || node.type === "IconBox" || node.type === "GlowingCard" || node.type === "InfoBox" || node.type === "Divider" || node.type === "CTAButton") &&
+            ) : (node.type === "Icon" || node.type === "IconBox" || node.type === "GlowingCard" || node.type === "InfoBox" || node.type === "Divider" || node.type === "CTAButton" || node.type === "PowerButton") &&
             field.key === "icon" ? (
               <IconLibraryPicker
                 key={field.key}
