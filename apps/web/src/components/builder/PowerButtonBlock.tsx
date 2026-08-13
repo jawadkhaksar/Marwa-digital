@@ -148,18 +148,23 @@ function hoverCss(cls: string, effect: HoverEffect, p: PowerButtonProps): string
   if (p.hoverColor) colour.push(`color:${p.hoverColor} !important`);
   if (p.hoverBorderColor) colour.push(`border-color:${p.hoverBorderColor} !important`);
 
+  // Every declaration below carries !important, because this block's resting
+  // styles are all inline and an inline style outranks any class selector.
+  // Without it the preset's own inline box-shadow simply won the cascade and
+  // the hover effect silently did nothing — which is how "elevated + glow"
+  // ended up looking completely static.
   switch (effect) {
     case "lift":
-      colour.push("transform:translateY(-2px)", "box-shadow:0 12px 22px -10px rgba(15,23,42,0.55)");
+      colour.push("transform:translateY(-2px) !important", "box-shadow:0 12px 22px -10px rgba(15,23,42,0.55) !important");
       break;
     case "grow":
-      colour.push("transform:scale(1.04)");
+      colour.push("transform:scale(1.04) !important");
       break;
     case "shrink":
-      colour.push("transform:scale(0.97)");
+      colour.push("transform:scale(0.97) !important");
       break;
     case "glow":
-      colour.push(`box-shadow:0 0 22px ${p.gradientFrom || "#2563ff"}88`);
+      colour.push(`box-shadow:0 0 22px ${p.gradientFrom || "#2563ff"}88 !important`);
       break;
     case "slide":
       // Oversized background slid into view, so a gradient sweeps across
@@ -169,7 +174,7 @@ function hoverCss(cls: string, effect: HoverEffect, p: PowerButtonProps): string
       break;
     case "pulse":
       rules.push(`@keyframes ${cls}-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}`);
-      colour.push(`animation:${cls}-pulse 1.1s ease-in-out infinite`);
+      colour.push(`animation:${cls}-pulse 1.1s ease-in-out infinite !important`);
       break;
     case "shine":
       // A rotated highlight swept across via ::after — needs the button to
@@ -189,7 +194,9 @@ function hoverCss(cls: string, effect: HoverEffect, p: PowerButtonProps): string
   if (colour.length > 0) rules.push(`.${cls}:hover{${colour.join(";")};}`);
   // Motion-based effects are suppressed for visitors who ask for reduced
   // motion; colour changes are left alone since they convey the state.
-  rules.push(`@media (prefers-reduced-motion:reduce){.${cls}:hover{transform:none;animation:none;}.${cls}::after{transition:none;}}`);
+  // Also !important, since the effect rules above now are — otherwise the
+  // opt-out could no longer beat them.
+  rules.push(`@media (prefers-reduced-motion:reduce){.${cls}:hover{transform:none !important;animation:none !important;}.${cls}::after{transition:none !important;}}`);
   return rules.join("");
 }
 
