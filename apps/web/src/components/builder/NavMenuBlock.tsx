@@ -381,9 +381,18 @@ export function NavMenuBlock({
   const mobileJustify =
     mobileAlignment === "center" ? "center" : mobileAlignment === "start" ? "flex-start" : mobileAlignment === "space-between" ? "space-between" : "flex-end";
 
+  // !important throughout: the dropdown panel carries its resting transform
+  // and opacity as inline styles, and an inline declaration outranks any
+  // class selector. Without it the hover rule's `translateY(0)` lost to the
+  // inline `translateY(-6px)` and the panel never moved — "slide" behaved
+  // exactly like "fade", which is why the setting looked inert.
   const transitionCss =
-    submenuAnimation === "none" ? "" : submenuAnimation === "slide" ? "transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(-6px);" : "transition: opacity 0.2s ease;";
-  const transitionShownCss = submenuAnimation === "slide" ? "transform: translateY(0);" : "";
+    submenuAnimation === "none"
+      ? ""
+      : submenuAnimation === "slide"
+        ? "transition: opacity 0.2s ease, transform 0.2s ease !important; transform: translateY(-6px) !important;"
+        : "transition: opacity 0.2s ease !important;";
+  const transitionShownCss = submenuAnimation === "slide" ? "transform: translateY(0) !important;" : "";
 
   function toggleMobileParent(id: string) {
     setOpenMobileParents((prev) => {
@@ -488,8 +497,34 @@ export function NavMenuBlock({
             </button>
           )}
         </div>
-        {kids.length > 0 && isOpen && (
-          <div style={{ display: "flex", flexDirection: "column", paddingLeft: "16px" }}>
+        {kids.length > 0 && (
+          // Kept mounted and collapsed rather than conditionally rendered, so
+          // Submenu Animation applies on mobile too. It previously only ever
+          // affected the desktop hover dropdown: this panel was mounted on
+          // open and unmounted on close, and an element that does not exist
+          // cannot transition, so the setting silently did nothing here.
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              paddingLeft: "16px",
+              overflow: "hidden",
+              // grid-rows would animate to content height without a magic
+              // number, but max-height keeps this readable and a submenu is
+              // never tall enough for the eased overshoot to be visible.
+              maxHeight: isOpen ? "60vh" : 0,
+              opacity: isOpen ? 1 : 0,
+              pointerEvents: isOpen ? "auto" : "none",
+              ...(submenuAnimation === "slide" ? { transform: isOpen ? "translateY(0)" : "translateY(-6px)" } : {}),
+              transition:
+                submenuAnimation === "none"
+                  ? undefined
+                  : submenuAnimation === "slide"
+                    ? "max-height 0.25s ease, opacity 0.2s ease, transform 0.2s ease"
+                    : "max-height 0.25s ease, opacity 0.2s ease",
+            }}
+            aria-hidden={!isOpen}
+          >
             {kids.map((child) => (
               <a
                 key={child.id}
@@ -669,6 +704,16 @@ export function NavMenuBlock({
             flexDirection: "column",
             gap: `var(--exr-rowSpacing, ${rowSpacing || itemSpacing || "0px"})`,
             marginTop: "8px",
+            // Mobile Menu Background applies here too. It used to be read
+            // only by the flyout branch, so in "dropdown" mode this panel had
+            // no background of its own and simply showed whatever the header
+            // Section sat on — making the setting look broken. Defaulted to
+            // transparent rather than the flyout's opaque dark, since this
+            // panel sits inside the header rather than over the page and an
+            // unset value should keep the previous appearance.
+            background: `var(--exr-mobileMenuBackground, ${mobileMenuBackground || "transparent"})`,
+            padding: mobileMenuBackground ? "12px 16px" : undefined,
+            borderRadius: mobileMenuBackground ? "10px" : undefined,
           }}
         >
           {topLevel.map(renderMobileItem)}
