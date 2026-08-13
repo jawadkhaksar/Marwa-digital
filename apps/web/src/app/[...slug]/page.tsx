@@ -9,6 +9,7 @@ import { LayoutRenderer } from "@/components/builder/LayoutRenderer";
 import { getStyleClassesMap } from "@/components/builder/styleClassCache";
 import { getTimedAnimationsMap } from "@/components/builder/timedAnimationCache";
 import { siteTagDataFromSettings } from "@/components/builder/resolveDynamicTokens";
+import { resolveActiveSiteTemplate } from "@/lib/resolveSiteTemplate";
 
 export const dynamic = "force-dynamic";
 
@@ -51,14 +52,19 @@ export default async function CmsPage({
 
   if (page.editorMode === "BUILDER") {
     const context = { kind: "page" as const, pageSlug: page.slug };
-    const [classesById, timedAnimationsById, settings] = await Promise.all([
+    // Header/footer templates are resolved here rather than left to the
+    // components' own client fetch, so the real chrome is in the server HTML
+    // instead of appearing a frame later.
+    const [classesById, timedAnimationsById, settings, headerTemplate, footerTemplate] = await Promise.all([
       getStyleClassesMap(),
       getTimedAnimationsMap(),
       api.getSettings().catch(() => null),
+      resolveActiveSiteTemplate("header", context).catch(() => null),
+      resolveActiveSiteTemplate("footer", context).catch(() => null),
     ]);
     return (
       <>
-        <SiteHeader solid context={context} />
+        <SiteHeader solid context={context} initialTemplate={headerTemplate?.layout ?? null} />
         <main className="bg-background text-foreground">
           {page.headTags && <div dangerouslySetInnerHTML={{ __html: page.headTags }} />}
           {page.customCss && <style dangerouslySetInnerHTML={{ __html: page.customCss }} />}
@@ -75,7 +81,7 @@ export default async function CmsPage({
               actually guarantees execution for. */}
           {page.customJs && <Script id={`custom-js-${page.slug}`} strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: page.customJs }} />}
         </main>
-        <SiteFooter context={context} />
+        <SiteFooter context={context} initialTemplate={footerTemplate?.layout ?? null} />
       </>
     );
   }
