@@ -9421,7 +9421,16 @@ function WebflowLayoutSection({
   };
 
   const setContentWidth = (val: "boxed" | "full") => {
-    patchStyle({ contentWidth: val });
+    // Full Width and an explicit Width are mutually exclusive — an element
+    // stretching to 100% of its parent has no fixed width by definition — so
+    // choosing Full clears any Width left in this breakpoint's bag. Without
+    // that, a leftover value (commonly inherited from a column split, e.g.
+    // width:40% on mobile) outranks contentWidth in resolveNodeStyle and the
+    // Full Width button silently does nothing.
+    //
+    // Boxed keeps it: there Width is the cap the section is centred within,
+    // which is exactly what that control means.
+    patchStyle(val === "full" ? { contentWidth: val, width: "", maxWidth: "" } : { contentWidth: val });
     if (node.type === "Section" || node.type === "Columns") {
       onChangeProps({ contentWidth: val });
     }
