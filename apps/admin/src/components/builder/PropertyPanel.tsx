@@ -9391,25 +9391,33 @@ function WebflowLayoutSection({
   const gridRows = String(activeStyle.gridTemplateRows || activeStyle.gridRows || "2");
   const gridFlow = String(activeStyle.gridAutoFlow || activeStyle.gridDirection || "row");
 
+  // These four controls write the block's own prop as well as the style bag,
+  // because Section/Columns read layout from props at the base breakpoint.
+  // node.props has no notion of a breakpoint though, so doing it while a
+  // Tablet/Mobile tab is active rewrote the DESKTOP value too — which is why
+  // setting a different Align (or Display, Direction, Width) per breakpoint
+  // was impossible: each edit silently changed the other. The prop write is
+  // now confined to the base breakpoint; Tablet/Mobile edits go only into
+  // that breakpoint's override bag, which is what resolveNodeStyle reads.
+  const editingBaseBreakpoint = breakpoint === "desktop";
+  const patchLayoutProps = (patch: Record<string, unknown>) => {
+    if (!editingBaseBreakpoint) return;
+    if (node.type === "Section" || node.type === "Columns") onChangeProps(patch);
+  };
+
   const setDisplay = (val: string) => {
     patchStyle({ display: val });
-    if (node.type === "Section" || node.type === "Columns") {
-      onChangeProps({ display: val });
-    }
+    patchLayoutProps({ display: val });
   };
 
   const setFlexDirectionAndWrap = (dir: string, wrapVal: string) => {
     patchStyle({ flexDirection: dir as LayoutNodeStyle["flexDirection"], direction: dir as LayoutNodeStyle["direction"], flexWrap: wrapVal, wrap: wrapVal });
-    if (node.type === "Section" || node.type === "Columns") {
-      onChangeProps({ direction: dir, wrap: wrapVal });
-    }
+    patchLayoutProps({ direction: dir, wrap: wrapVal });
   };
 
   const setJustifyAndAlign = (just: string, algn: string) => {
     patchStyle({ justifyContent: just, alignItems: algn });
-    if (node.type === "Section" || node.type === "Columns") {
-      onChangeProps({ justifyContent: just, alignItems: algn });
-    }
+    patchLayoutProps({ justifyContent: just, alignItems: algn });
   };
 
   const setGapValue = (num: number, unit: string) => {
@@ -9431,9 +9439,7 @@ function WebflowLayoutSection({
     // Boxed keeps it: there Width is the cap the section is centred within,
     // which is exactly what that control means.
     patchStyle(val === "full" ? { contentWidth: val, width: "", maxWidth: "" } : { contentWidth: val });
-    if (node.type === "Section" || node.type === "Columns") {
-      onChangeProps({ contentWidth: val });
-    }
+    patchLayoutProps({ contentWidth: val });
   };
 
   const isBlock = currentDisplay === "block";
