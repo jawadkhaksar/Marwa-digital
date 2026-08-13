@@ -104,11 +104,20 @@ html.custom-cursor-active * {
    which the browser then exposes as a page-level horizontal scrollbar even
    though no single visible section looks broken — clamping the two root
    elements is the actual fix, not chasing whichever child happens to be the
-   overflow source today. */
+   overflow source today.
+
+   `clip`, not `hidden`: per the CSS Overflow spec, when overflow-x is
+   anything other than `visible` and overflow-y is left `visible`, the UA
+   must force overflow-y to `auto` too — which turns body into a scroll
+   container of its own and breaks `position: sticky` for every descendant
+   (a sticky header/section built in the Theme Builder just silently stops
+   sticking). `clip` was added specifically to allow clipping one axis
+   without that side effect, so it prevents the same stray-horizontal-
+   overflow scrollbar with none of the sticky breakage. */
 html,
 body {
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {

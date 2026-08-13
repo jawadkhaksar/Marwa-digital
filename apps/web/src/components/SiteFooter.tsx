@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import type { LayoutDocument } from "@marwa/builder";
 import { Logo } from "./home/Logo";
 import {
@@ -21,7 +21,7 @@ import {
 } from "./home/icons";
 import { api, type FooterLink, type SiteSettings, type MenuLink } from "@/lib/api";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
-import { resolveActiveSiteTemplate, type PageContext } from "@/lib/resolveSiteTemplate";
+import { resolveActiveSiteTemplate, readCachedTemplateLayout, writeCachedTemplateLayout, type PageContext } from "@/lib/resolveSiteTemplate";
 import { LayoutRenderer } from "./builder/LayoutRenderer";
 import { siteTagDataFromSettings } from "./builder/resolveDynamicTokens";
 
@@ -80,13 +80,23 @@ export function SiteFooter({ context = { kind: "other" } }: { context?: PageCont
       .catch(() => setFooterMenuItems([]));
   }, []);
 
+  // Restores a same-session cached result before paint — see SiteHeader's
+  // matching layout effect for why this can't just be the useState initializer.
+  useLayoutEffect(() => {
+    const cached = readCachedTemplateLayout("footer", context);
+    if (cached) setTemplateLayout(cached);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(context)]);
+
   // Theme Builder — a custom Footer template (Settings → Theme Builder)
   // takes over entirely when one matches this page; falls back to the
   // hard-coded footer below when it doesn't (or the request fails).
   useEffect(() => {
     let cancelled = false;
     resolveActiveSiteTemplate("footer", context).then((template) => {
-      if (!cancelled) setTemplateLayout(template?.layout ?? null);
+      const layout = template?.layout ?? null;
+      if (!cancelled) setTemplateLayout(layout);
+      writeCachedTemplateLayout("footer", context, layout);
     });
     return () => {
       cancelled = true;

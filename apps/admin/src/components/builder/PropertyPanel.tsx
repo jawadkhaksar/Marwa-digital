@@ -8804,7 +8804,20 @@ function WebflowPositionSection({
               </span>
               <select
                 value={currentPos}
-                onChange={(e) => patchStyle({ position: e.target.value as LayoutNodeStyle["position"] })}
+                onChange={(e) => {
+                  const nextPosition = e.target.value as LayoutNodeStyle["position"];
+                  // Sticky does nothing visible without an offset to stick
+                  // at and a stacking context above whatever it scrolls
+                  // over — default both the moment it's picked (only when
+                  // not already set, so an existing Top/Z-Index survives
+                  // toggling position back and forth) instead of leaving a
+                  // "Sticky" that silently behaves like Static.
+                  if (nextPosition === "sticky") {
+                    patchStyle({ position: nextPosition, top: activeStyle.top || "0px", zIndex: activeStyle.zIndex || "50" });
+                  } else {
+                    patchStyle({ position: nextPosition });
+                  }
+                }}
                 className="w-full bg-zinc-950 text-xs text-zinc-100 focus:outline-none capitalize cursor-pointer [&>option]:bg-zinc-900 [&>option]:text-zinc-100"
               >
                 <option value="static" className="bg-zinc-900 text-zinc-100">Static</option>
@@ -9364,6 +9377,8 @@ function WebflowLayoutSection({
   const currentJustify = String(activeStyle.justifyContent || (node.props.justifyContent as string) || "flex-start");
   const currentAlign = String(activeStyle.alignItems || (node.props.alignItems as string) || "stretch");
 
+  const currentContentWidth = String(activeStyle.contentWidth || (node.props.contentWidth as string) || "boxed").toLowerCase();
+
   const rawGap = String(activeStyle.gap || (node.props.gap as string) || "16px");
   const gapValueMatch = rawGap.match(/^(\d+(?:\.\d+)?)\s*([a-z%]*)$/i);
   const gapNum = gapValueMatch ? parseFloat(gapValueMatch[1]) : 16;
@@ -9402,6 +9417,13 @@ function WebflowLayoutSection({
     patchStyle({ gap: formatted });
     if (node.type === "Section" || node.type === "Columns") {
       onChangeProps({ gap: formatted });
+    }
+  };
+
+  const setContentWidth = (val: "boxed" | "full") => {
+    patchStyle({ contentWidth: val });
+    if (node.type === "Section" || node.type === "Columns") {
+      onChangeProps({ contentWidth: val });
     }
   };
 
@@ -9516,6 +9538,34 @@ function WebflowLayoutSection({
               </div>
             </div>
           </div>
+
+          {(node.type === "Section" || node.type === "Columns") && (
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-zinc-800/40">
+              <span className="text-[11px] font-medium text-zinc-400 w-14">Width</span>
+              <div className="flex flex-1 items-center rounded-lg border border-zinc-800 bg-zinc-950 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setContentWidth("boxed")}
+                  title="Centered, capped at the configured Width (Size panel)"
+                  className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-all ${
+                    currentContentWidth === "boxed" ? "bg-zinc-800 text-zinc-100 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  Boxed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setContentWidth("full")}
+                  title="Stretches to 100% of its parent, no side margins"
+                  className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-all ${
+                    currentContentWidth === "full" ? "bg-zinc-800 text-zinc-100 shadow-sm" : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  Full Width
+                </button>
+              </div>
+            </div>
+          )}
 
           {(isFlex || isInlineFlex) && (
             <div className="flex flex-col gap-3 pt-1 border-t border-zinc-800/40">

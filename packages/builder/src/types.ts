@@ -151,6 +151,11 @@ export interface ResponsiveStyleFields {
 
   // ── Layout breakpoint overrides & Webflow-style layout controls ──
   display?: "block" | "flex" | "grid" | "none" | "inline-block" | "inline" | "inline-flex" | string;
+  // Section/Columns' "boxed" (centered, max-width) vs "full" (100%) content
+  // width mode — like direction/gap above, the canonical desktop value lives
+  // on node.props (see LAYOUT_KEYS in PropertyPanel.tsx), and this field only
+  // carries a Tablet/Mobile override.
+  contentWidth?: "boxed" | "full";
   flexDirection?: "row" | "column" | "row-reverse" | "column-reverse";
   flexWrap?: "wrap" | "nowrap" | "wrap-reverse" | string;
   wrap?: "wrap" | "nowrap" | "wrap-reverse" | string;

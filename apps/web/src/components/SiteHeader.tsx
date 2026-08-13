@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import type { LayoutDocument } from "@marwa/builder";
@@ -11,7 +11,7 @@ import { MenuDropdownPreview } from "./home/MenuDropdownPreview";
 import { api, type MenuLink, type SiteSettings } from "@/lib/api";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
 import { getCurrentLang, setLang as applyLang, type SiteLang } from "@/lib/googleTranslate";
-import { resolveActiveSiteTemplate, type PageContext } from "@/lib/resolveSiteTemplate";
+import { resolveActiveSiteTemplate, readCachedTemplateLayout, writeCachedTemplateLayout, type PageContext } from "@/lib/resolveSiteTemplate";
 import { LayoutRenderer } from "./builder/LayoutRenderer";
 import { siteTagDataFromSettings } from "./builder/resolveDynamicTokens";
 import { ThemeToggle } from "./ThemeToggle";
@@ -63,13 +63,26 @@ export function SiteHeader({ solid = false, context = { kind: "other" } }: { sol
     api.getSettings().then(setSettings).catch(() => {});
   }, []);
 
+  // Restores a same-session cached result *before* the browser paints, so a
+  // page whose custom header was already seen once this session never
+  // flashes the hard-coded header again while the fetch below re-confirms
+  // it — see readCachedTemplateLayout's own comment for why this can't just
+  // be the useState initializer (would mismatch the server-rendered HTML).
+  useLayoutEffect(() => {
+    const cached = readCachedTemplateLayout("header", context);
+    if (cached) setTemplateLayout(cached);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(context)]);
+
   // Theme Builder — a custom Header template (Settings → Theme Builder)
   // takes over entirely when one matches this page; falls back to the
   // hard-coded header below when it doesn't (or the request fails).
   useEffect(() => {
     let cancelled = false;
     resolveActiveSiteTemplate("header", context).then((template) => {
-      if (!cancelled) setTemplateLayout(template?.layout ?? null);
+      const layout = template?.layout ?? null;
+      if (!cancelled) setTemplateLayout(layout);
+      writeCachedTemplateLayout("header", context, layout);
     });
     return () => {
       cancelled = true;
