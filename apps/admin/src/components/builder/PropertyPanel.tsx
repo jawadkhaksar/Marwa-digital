@@ -1312,6 +1312,50 @@ const ICON_ACCORDION_GROUP_HEADERS: Record<string, string> = {
   itemBackground: "Item",
 };
 
+// Generic, suffix-driven sub-grouping for the Module Settings accordion's
+// ~1,349-entry per-block style vocabulary — matched by field-NAME pattern,
+// the same principle the "*BoxShadow" -> BoxShadowField rule below already
+// uses for widget selection, so every current and future block's fields
+// (e.g. TechStackGrid's cardBackground/cardBorderColor/iconColor/...) land
+// in a sensible cluster without hand-registering each one per block the way
+// ICON_ACCORDION_GROUP_HEADERS above requires. Hover-matching fields are
+// deliberately excluded (return undefined) — they already get their own
+// "Hover Settings" divider via isFirstHoverField below, and the two
+// grouping systems would otherwise fight over the same fields.
+function genericFieldGroup(key: string): string | undefined {
+  if (/Hover/.test(key)) return undefined;
+  if (/(BoxShadow|Shadow)$/.test(key)) return "Shadow";
+  if (/(BorderWidth|BorderRadius|BorderColor|BorderStyle)$/.test(key)) return "Border";
+  if (/(Background|BackgroundColor|BackgroundImage|BackgroundSize|BackgroundPosition|BackgroundRepeat)$/.test(key)) return "Background";
+  if (/Color$/.test(key)) return "Color";
+  if (/(Padding|Margin)(Top|Right|Bottom|Left)?$/.test(key)) return "Spacing";
+  if (/(Width|Height)$/.test(key)) return "Size";
+  return undefined;
+}
+
+const GENERIC_GROUP_ORDER = ["Color", "Background", "Border", "Shadow", "Spacing", "Size"];
+
+// Stable-clusters a block's style fields by genericFieldGroup so headers
+// below don't bounce back and forth (e.g. Background, Border, Color,
+// Background, Color for 5 fields declared in schema-declaration order) —
+// pure display-order change, every field still binds to the exact same
+// key, so this can't affect what's actually saved.
+function groupStyleFields<T extends { key: string }>(fields: T[]): T[] {
+  const ungrouped: T[] = [];
+  const buckets = new Map<string, T[]>();
+  for (const field of fields) {
+    const group = genericFieldGroup(field.key);
+    if (!group) {
+      ungrouped.push(field);
+      continue;
+    }
+    if (!buckets.has(group)) buckets.set(group, []);
+    buckets.get(group)!.push(field);
+  }
+  const grouped = GENERIC_GROUP_ORDER.flatMap((g) => buckets.get(g) ?? []);
+  return [...ungrouped, ...grouped];
+}
+
 /** Display labels for SOCIAL_LINK_PLATFORM_VALUES — used by both the "Social
  *  Icons" and "Team Member" blocks' social-link repeaters. */
 const SOCIAL_LINK_PLATFORM_LABELS: Record<string, string> = {
@@ -1582,9 +1626,12 @@ export interface InspectorTabHeaderProps {
   availableTabs: Tab[];
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
+  /** Shown as a small badge on the "style" tab so switching away from a non-Normal
+   * pseudo-state edit doesn't silently hide that it's still active. */
+  pseudoState?: PseudoState;
 }
 
-export function InspectorTabHeader({ availableTabs, activeTab, onTabChange }: InspectorTabHeaderProps) {
+export function InspectorTabHeader({ availableTabs, activeTab, onTabChange, pseudoState }: InspectorTabHeaderProps) {
   if (availableTabs.length <= 1) return null;
 
   return (
@@ -1596,12 +1643,22 @@ export function InspectorTabHeader({ availableTabs, activeTab, onTabChange }: In
           onClick={() => onTabChange(t)}
           className={`flex flex-1 min-w-[105px] items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all ${
             activeTab === t
-              ? "bg-[#ffb700] text-black shadow-sm"
+              ? "bg-amber-400 text-black shadow-sm"
               : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
           }`}
         >
           {TAB_ICONS[t]}
           <span className="whitespace-nowrap">{TAB_LABELS[t]}</span>
+          {t === "style" && pseudoState && pseudoState !== "normal" && (
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none ${
+                activeTab === t ? "bg-black/15 text-black" : "bg-amber-400/20 text-amber-400"
+              }`}
+              title={`Editing the :${pseudoState} state`}
+            >
+              :{pseudoState}
+            </span>
+          )}
         </button>
       ))}
     </div>
@@ -1957,10 +2014,22 @@ export function PropertyPanel({
   ];
   const tab = activeTab && availableTabs.includes(activeTab) ? activeTab : availableTabs[0];
 
-  const activeStyle: ResponsiveStyleFields = breakpoint === "desktop" ? (styleSource ?? {}) : (styleSource?.[breakpoint] ?? {});
+  // Pseudo-states are flat overlay bags, never breakpoint-scoped (see
+  // LayoutNodeStyle.hover's own comment) — the same shape the resolveNodeStyle.ts
+  // CSS emitter already reads via hoverRule()/pseudoStateRule() for all four
+  // states, so wiring the 8 general accordions to read/write here just fills
+  // in an editor for data the renderer already fully supports.
+  const activeStyle: ResponsiveStyleFields =
+    pseudoState !== "normal"
+      ? ((styleSource?.[pseudoState] ?? {}) as ResponsiveStyleFields)
+      : breakpoint === "desktop"
+        ? (styleSource ?? {})
+        : (styleSource?.[breakpoint] ?? {});
 
   function patchStyle(patch: ResponsiveStyleFields) {
-    if (breakpoint === "desktop") {
+    if (pseudoState !== "normal") {
+      commitStyle({ [pseudoState]: { ...(styleSource?.[pseudoState] ?? {}), ...patch } });
+    } else if (breakpoint === "desktop") {
       commitStyle(patch);
     } else {
       commitStyle({ [breakpoint]: { ...(styleSource?.[breakpoint] ?? {}), ...patch } });
@@ -2156,7 +2225,7 @@ export function PropertyPanel({
         )}
       </div>
 
-      <InspectorTabHeader availableTabs={availableTabs} activeTab={tab} onTabChange={setActiveTab} />
+      <InspectorTabHeader availableTabs={availableTabs} activeTab={tab} onTabChange={setActiveTab} pseudoState={pseudoState} />
 
       {tab === "content" && (
         <div className="flex flex-col gap-3">
@@ -2844,7 +2913,7 @@ export function PropertyPanel({
             <TypographyField {...typographyBinding("")} />
           )}
           {(() => {
-            const visibleFields = styleFields.filter(
+            const rawVisibleFields = styleFields.filter(
               // NavMenu's ~65 style props render as 3 explicitly-headed
               // sections (Menu/Dropdown/Trigger) further down instead of one
               // long undifferentiated list — see the dedicated block below.
@@ -2854,6 +2923,13 @@ export function PropertyPanel({
                 node.type !== "IconList" &&
                 !(node.type === "Section" && SECTION_OWN_STYLE_KEYS.has(f.key))
             );
+            // IconAccordion keeps its own hand-curated field order (its
+            // ICON_ACCORDION_GROUP_HEADERS map below assumes the declared
+            // schema order) — every other block gets the generic suffix
+            // clustering so its Color/Background/Border/Shadow/Spacing/Size
+            // fields render as clean adjacent runs instead of scattered in
+            // raw schema-declaration order.
+            const visibleFields = node.type === "IconAccordion" ? rawVisibleFields : groupStyleFields(rawVisibleFields);
             return visibleFields.map((field, i) => {
               // Any field whose key contains "Hover" gets an automatic
               // "Hover Settings" divider the moment the list transitions
@@ -2863,12 +2939,16 @@ export function PropertyPanel({
               // hand-registering it per block, the way
               // ICON_ACCORDION_GROUP_HEADERS requires below.
               const isFirstHoverField = /Hover/.test(field.key) && !/Hover/.test(visibleFields[i - 1]?.key ?? "");
+              const genericGroup = genericFieldGroup(field.key);
+              const isFirstOfGenericGroup = Boolean(genericGroup) && genericGroup !== genericFieldGroup(visibleFields[i - 1]?.key ?? "");
               const groupHeader =
                 node.type === "IconAccordion"
                   ? ICON_ACCORDION_GROUP_HEADERS[field.key]
                   : isFirstHoverField
                     ? "Hover Settings"
-                    : undefined;
+                    : isFirstOfGenericGroup
+                      ? genericGroup
+                      : undefined;
               // Any field ending in "BoxShadow" that isn't already grouped
               // into its own dedicated block (GROUPED_STYLE_KEYS) gets the
               // real BoxShadowField widget (Color/Offset-X/Offset-Y/Blur/

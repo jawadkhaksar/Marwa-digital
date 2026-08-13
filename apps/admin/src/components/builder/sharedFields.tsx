@@ -5,10 +5,10 @@
 // TypographyField (which PropertyPanel renders) doesn't have to import back
 // from PropertyPanel.tsx and create a circular import.
 
-export const LENGTH_UNITS = ["px", "%", "em", "rem", "vw"] as const;
+export const LENGTH_UNITS = ["px", "%", "em", "rem", "vw", "vh"] as const;
 
 export function parseLength(value: string): { num: number; unit: (typeof LENGTH_UNITS)[number] } {
-  const match = value.match(/^(-?\d*\.?\d+)(px|%|em|rem|vw)?$/);
+  const match = value.match(/^(-?\d*\.?\d+)(px|%|em|rem|vw|vh)?$/);
   if (!match) return { num: 0, unit: "px" };
   const unit = (LENGTH_UNITS as readonly string[]).includes(match[2] ?? "") ? (match[2] as (typeof LENGTH_UNITS)[number]) : "px";
   return { num: parseFloat(match[1]), unit };
