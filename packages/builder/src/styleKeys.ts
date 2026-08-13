@@ -11,6 +11,40 @@
 // Style tab for whichever block(s) declare a prop with that name — there is
 // no per-block-type registration step.
 export const STYLE_KEYS = new Set([
+  // Block-specific style props that already read through var(--exr-{key}) in
+  // their renderers but were never listed here, so the inspector bound them
+  // to node.props and they applied to every breakpoint at once. The CSS
+  // delivery already existed; only this membership was missing.
+  "cardMaxWidth",
+  "categoryBackground",
+  "categoryColor",
+  "codeBackground",
+  "contentColumnWidth",
+  "dropdownItemGap",
+  "factsColumnWidth",
+  "imageColumnWidth",
+  "incidentBorderColor",
+  "incidentCardBackground",
+  "incidentTextColor",
+  "incidentTitleColor",
+  "latencyGraphColor",
+  "latencyLabelColor",
+  "methodColor",
+  "pathColor",
+  "primaryCtaFontStyle",
+  "primaryCtaLineHeight",
+  "primaryCtaTextDecoration",
+  "primaryCtaWordSpacing",
+  "responseLabelColor",
+  "secondaryCtaFontStyle",
+  "secondaryCtaLineHeight",
+  "secondaryCtaTextDecoration",
+  "secondaryCtaWordSpacing",
+  "sectionBorderRadius",
+  "sectionBoxShadow",
+  "serviceDescColor",
+  "serviceNameColor",
+  "summaryColor",
   "background",
   "backgroundImage",
   "backgroundPosition",
